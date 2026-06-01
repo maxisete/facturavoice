@@ -8,6 +8,8 @@ export const useAppStore = create(
       negocio: null,
       setNegocio: (negocio) => set({ negocio }),
 
+      setContadores: (contadores) => set({ contadores }),
+
       // Clientes
       clientes: [],
       addCliente: (cliente) => set(s => ({ clientes: [...s.clientes, cliente] })),
@@ -22,7 +24,9 @@ export const useAppStore = create(
         const año = new Date().getFullYear()
         const prefijo = tipo === 'factura' ? 'F' : tipo === 'presupuesto' ? 'P' : 'A'
         const clave = `${prefijo}-${año}`
-        const actual = get().contadores[clave] || 0
+        const negocio = get().negocio
+        const campoContador = `contador_${tipo === 'albaran' ? 'albaran' : tipo}`
+        const actual = get().contadores[clave] ?? (negocio?.[campoContador] ? negocio[campoContador] - 1 : 0)
         const siguiente = actual + 1
         return `${clave}-${String(siguiente).padStart(3, '0')}`
       },

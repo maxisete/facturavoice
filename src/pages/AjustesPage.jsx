@@ -5,7 +5,7 @@ import { useAppStore } from '../store/appStore'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
-  const { negocio, setNegocio } = useAppStore()
+  const { negocio, setNegocio, setContadores } = useAppStore()
 
   const [form, setForm] = useState({
     nombre: negocio?.nombre || '',
@@ -16,10 +16,19 @@ export default function AjustesPage() {
     email: negocio?.email || '',
     iva_defecto: negocio?.iva_defecto || 21,
     color_marca: negocio?.color_marca || '#FF5C39',
+    contador_presupuesto: negocio?.contador_presupuesto || 1,
+    contador_factura: negocio?.contador_factura || 1,
+    contador_albaran: negocio?.contador_albaran || 1,
   })
 
   const handleGuardar = () => {
+    const año = new Date().getFullYear()
     setNegocio(form)
+    setContadores({
+      [`P-${año}`]: form.contador_presupuesto - 1,
+      [`F-${año}`]: form.contador_factura - 1,
+      [`A-${año}`]: form.contador_albaran - 1,
+    })
     navigate(-1)
   }
 
@@ -77,6 +86,33 @@ export default function AjustesPage() {
               type="number"
               value={form.iva_defecto}
               onChange={e => handleCampo('iva_defecto', parseFloat(e.target.value) || 21)}
+              className="w-full text-sm text-gray-900 bg-transparent focus:outline-none"
+            />
+          </div>
+          <div className="px-4 py-3 border-t border-gray-50">
+            <p className="text-xs text-gray-400 mb-1">Próximo nº de presupuesto</p>
+            <input
+              type="number"
+              value={form.contador_presupuesto}
+              onChange={e => handleCampo('contador_presupuesto', parseInt(e.target.value) || 1)}
+              className="w-full text-sm text-gray-900 bg-transparent focus:outline-none"
+            />
+          </div>
+          <div className="px-4 py-3 border-t border-gray-50">
+            <p className="text-xs text-gray-400 mb-1">Próximo nº de factura</p>
+            <input
+              type="number"
+              value={form.contador_factura}
+              onChange={e => handleCampo('contador_factura', parseInt(e.target.value) || 1)}
+              className="w-full text-sm text-gray-900 bg-transparent focus:outline-none"
+            />
+          </div>
+          <div className="px-4 py-3 border-t border-gray-50">
+            <p className="text-xs text-gray-400 mb-1">Próximo nº de albarán</p>
+            <input
+              type="number"
+              value={form.contador_albaran}
+              onChange={e => handleCampo('contador_albaran', parseInt(e.target.value) || 1)}
               className="w-full text-sm text-gray-900 bg-transparent focus:outline-none"
             />
           </div>
