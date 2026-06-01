@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 import DictatePage from './pages/DictatePage'
 import DocumentPage from './pages/DocumentPage'
 import AjustesPage from './pages/AjustesPage'
+import ClientesPage from './pages/ClientesPage'
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/dictar" element={<DictatePage />} />
         <Route path="/documento" element={<DocumentPage />} />
         <Route path="/ajustes" element={<AjustesPage />} />
+        <Route path="/clientes" element={<ClientesPage />} />
       </Routes>
     </BrowserRouter>
   )

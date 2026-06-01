@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Mic, MicOff, ChevronLeft, AlertCircle } from 'lucide-react'
+import { Mic, MicOff, ChevronLeft, AlertCircle, User } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
 import { parseDictation } from '../lib/groq'
 import { crearDocumentoVacio, calcularTotales } from '../lib/document'
 import { useAppStore } from '../store/appStore'
+import ClientesPage from './ClientesPage'
 
 export default function DictatePage() {
   const navigate = useNavigate()
@@ -17,8 +18,8 @@ export default function DictatePage() {
   const [procesando, setProcesando] = useState(false)
   const [pasoActual, setPasoActual] = useState('')
   const [errorProceso, setErrorProceso] = useState(null)
-
-  const clientePrueba = { id: '1', nombre: 'Cliente de prueba' }
+  const [cliente, setCliente] = useState(null)
+  const [mostrarClientes, setMostrarClientes] = useState(false)
 
   const handleBotonMic = async () => {
     if (grabando) {
@@ -52,7 +53,8 @@ export default function DictatePage() {
       const numero = getSiguienteNumero(tipo)
       incrementarContador(tipo)
 
-      const doc = crearDocumentoVacio(tipo, clientePrueba, numero)
+      const clienteFinal = cliente || { id: 'prueba', nombre: 'Cliente de prueba' }
+      const doc = crearDocumentoVacio(tipo, clienteFinal, numero)
       doc.lineas = resultado.lines || []
       doc.condiciones_pago = resultado.payment_terms
       doc.notas = resultado.notes
@@ -71,6 +73,10 @@ export default function DictatePage() {
   const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1)
   const barras = [0, 1, 2, 3, 4, 5, 6]
 
+  if (mostrarClientes) {
+    return <ClientesPage onSeleccionar={(c) => { setCliente(c); setMostrarClientes(false) }} />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="flex items-center px-5 pt-10 pb-4">
@@ -79,6 +85,19 @@ export default function DictatePage() {
         </button>
         <h1 className="font-bold text-gray-900 ml-1">{tipoLabel}</h1>
       </header>
+
+      <div className="px-5 py-2">
+        <button
+          onClick={() => setMostrarClientes(true)}
+          className="flex items-center gap-2 w-full bg-white border border-gray-100 rounded-2xl px-4 py-3 hover:border-brand/30 transition-colors"
+        >
+          <User size={16} className="text-brand flex-shrink-0" />
+          <span className="text-sm text-gray-900 flex-1 text-left">
+            {cliente ? cliente.nombre : 'Elegir cliente…'}
+          </span>
+          <span className="text-xs text-brand">Cambiar</span>
+        </button>
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-8">
         {!procesando && (
