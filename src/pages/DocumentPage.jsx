@@ -7,12 +7,33 @@ export default function DocumentPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [doc, setDoc] = useState(location.state?.documento || null)
+  const [generando, setGenerando] = useState(false)
 
   useEffect(() => {
     if (!doc) navigate('/')
   }, [])
 
   if (!doc) return null
+
+  const handleDescargarPDF = async () => {
+    setGenerando(true)
+    try {
+      const { default: jsPDF } = await import('jspdf')
+      const { default: html2canvas } = await import('html2canvas')
+      const elemento = document.getElementById('documento-preview')
+      const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: '#ffffff' })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const ancho = pdf.internal.pageSize.getWidth()
+      const alto = (canvas.height * ancho) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, ancho, alto)
+      pdf.save(`${doc.tipo}-${doc.numero}.pdf`)
+    } catch (err) {
+      console.error('Error generando PDF:', err)
+    } finally {
+      setGenerando(false)
+    }
+  }
 
   const tipoLabel = doc.tipo === 'factura' ? 'Factura' : doc.tipo === 'presupuesto' ? 'Presupuesto' : 'Albarán'
 
@@ -44,9 +65,13 @@ export default function DocumentPage() {
           <p className="text-xs text-gray-400">{tipoLabel}</p>
           <p className="font-bold text-gray-900">{doc.numero}</p>
         </div>
-        <button className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-medium">
+        <button
+          onClick={handleDescargarPDF}
+          disabled={generando}
+          className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+        >
           <Download size={15} />
-          PDF
+          {generando ? 'Generando…' : 'PDF'}
         </button>
       </header>
 
@@ -160,6 +185,60 @@ export default function DocumentPage() {
           />
         </div>
       </div>
+      {/* Preview oculto para el PDF */}
+        <div id="documento-preview" className="bg-white p-8 rounded-2xl border border-gray-100"
+          style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px' }}>
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Mi Negocio</h2>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-brand">{tipoLabel.toUpperCase()}</p>
+              <p className="text-gray-500">{doc.numero}</p>
+              <p className="text-gray-500">{formatearFecha(doc.fecha)}</p>
+            </div>
+          </div>
+          <div className="mb-6">
+            <p className="text-xs text-gray-400 uppercase mb-1">Cliente</p>
+            <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+          </div>
+          <table className="w-full mb-6">
+            <thead>
+              <tr className="bg-gray-900 text-white">
+                <th className="text-left p-3 text-xs">Descripción</th>
+                <th className="text-right p-3 text-xs">Cant.</th>
+                <th className="text-right p-3 text-xs">Precio</th>
+                <th className="text-right p-3 text-xs">IVA</th>
+                <th className="text-right p-3 text-xs">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {doc.lineas.map((l, i) => (
+                <tr key={i} className="border-b border-gray-100">
+                  <td className="p-3 text-sm">{l.description}</td>
+                  <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
+                  <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
+                  <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
+                  <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex justify-end">
+            <div className="w-48 space-y-1">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>Base</span><span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>IVA</span><span className="font-mono">{formatearEuros(doc.totales.totalIva)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200">
+                <span>Total</span><span className="font-mono text-brand">{formatearEuros(doc.totales.total)}</span>
+              </div>
+            </div>
+          </div>
+          {doc.notas && <p className="mt-6 text-sm text-gray-500">{doc.notas}</p>}
+        </div>
     </div>
   )
 }
