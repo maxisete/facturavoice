@@ -193,6 +193,10 @@ export default function DocumentPage() {
           <div className="flex justify-between items-start mb-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</h2>
+              {negocio?.nif && <p className="text-sm text-gray-500">{negocio.nif}</p>}
+              {negocio?.direccion && <p className="text-sm text-gray-500">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
+              {negocio?.telefono && <p className="text-sm text-gray-500">{negocio.telefono}</p>}
+              {negocio?.email && <p className="text-sm text-gray-500">{negocio.email}</p>}
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-brand">{tipoLabel.toUpperCase()}</p>
