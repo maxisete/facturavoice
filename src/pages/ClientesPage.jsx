@@ -2,13 +2,24 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Plus, User, Mic, MicOff, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
+import { supabase } from '../lib/supabase'
+import { useEffect } from 'react'
 import { useVoice } from '../hooks/useVoice'
 import { parseDictation } from '../lib/groq'
 
 export default function ClientesPage({ onSeleccionar }) {
   const navigate = useNavigate()
-  const { clientes, addCliente } = useAppStore()
-
+  const { clientes, addCliente, setClientes } = useAppStore()
+  useEffect(() => {
+    const cargarClientes = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data } = await supabase.from('clientes').select('*').eq('user_id', user.id)
+        if (data) setClientes(data)
+      }
+    }
+    cargarClientes()
+  }, [])
   const [busqueda, setBusqueda] = useState('')
   const [creando, setCreando] = useState(false)
   const [procesando, setProcesando] = useState(false)
@@ -79,12 +90,18 @@ Texto: "${texto}"`
     }
   }
 
-  const handleGuardarCliente = () => {
+  const handleGuardarCliente = async () => {
     if (!formCliente.nombre.trim()) {
       setError('El nombre es obligatorio.')
       return
     }
+    const { data: { user } } = await supabase.auth.getUser()
     const nuevoCliente = { ...formCliente, id: crypto.randomUUID() }
+    
+    if (user) {
+      await supabase.from('clientes').insert({ ...formCliente, user_id: user.id })
+    }
+    
     addCliente(nuevoCliente)
     if (onSeleccionar) {
       onSeleccionar(nuevoCliente)

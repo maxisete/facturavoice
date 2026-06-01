@@ -1,11 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Save } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
+import { supabase } from '../lib/supabase'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
   const { negocio, setNegocio, setContadores } = useAppStore()
+
+  useEffect(() => {
+    const cargarNegocio = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data } = await supabase.from('negocios').select('*').eq('id', user.id).single()
+        if (data) {
+          setNegocio(data)
+          setForm({
+            nombre: data.nombre || '',
+            nif: data.nif || '',
+            direccion: data.direccion || '',
+            ciudad: data.ciudad || '',
+            telefono: data.telefono || '',
+            email: data.email || '',
+            iva_defecto: data.iva_defecto || 21,
+            color_marca: data.color_marca || '#FF5C39',
+            contador_presupuesto: data.contador_presupuesto || 1,
+            contador_factura: data.contador_factura || 1,
+            contador_albaran: data.contador_albaran || 1,
+          })
+        }
+      }
+    }
+    cargarNegocio()
+  }, [])
 
   const [form, setForm] = useState({
     nombre: negocio?.nombre || '',
@@ -21,7 +48,7 @@ export default function AjustesPage() {
     contador_albaran: negocio?.contador_albaran || 1,
   })
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     const año = new Date().getFullYear()
     setNegocio(form)
     setContadores({
@@ -29,6 +56,15 @@ export default function AjustesPage() {
       [`F-${año}`]: form.contador_factura - 1,
       [`A-${año}`]: form.contador_albaran - 1,
     })
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('negocios').upsert({
+        id: user.id,
+        ...form,
+      })
+    }
+
     navigate(-1)
   }
 

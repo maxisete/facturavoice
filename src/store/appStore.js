@@ -13,6 +13,7 @@ export const useAppStore = create(
       // Clientes
       clientes: [],
       addCliente: (cliente) => set(s => ({ clientes: [...s.clientes, cliente] })),
+      setClientes: (clientes) => set({ clientes }),
 
       // Modo oscuro
       modoOscuro: false,
