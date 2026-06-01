@@ -36,17 +36,17 @@ export default function AjustesPage() {
   }, [])
 
   const [form, setForm] = useState({
-    nombre: negocio?.nombre || '',
-    nif: negocio?.nif || '',
-    direccion: negocio?.direccion || '',
-    ciudad: negocio?.ciudad || '',
-    telefono: negocio?.telefono || '',
-    email: negocio?.email || '',
-    iva_defecto: negocio?.iva_defecto || 21,
-    color_marca: negocio?.color_marca || '#FF5C39',
-    contador_presupuesto: negocio?.contador_presupuesto || 1,
-    contador_factura: negocio?.contador_factura || 1,
-    contador_albaran: negocio?.contador_albaran || 1,
+    nombre: '',
+    nif: '',
+    direccion: '',
+    ciudad: '',
+    telefono: '',
+    email: '',
+    iva_defecto: 21,
+    color_marca: '#FF5C39',
+    contador_presupuesto: 1,
+    contador_factura: 1,
+    contador_albaran: 1,
   })
 
   const handleGuardar = async () => {
