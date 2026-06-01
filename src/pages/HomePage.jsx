@@ -51,7 +51,7 @@ export default function HomePage() {
         className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-brand transition-colors"
       >
         <Plus size={22} />
-        Nuevo {tipo}
+        Nuevo {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
       </button>
     </div>
   )
