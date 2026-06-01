@@ -33,9 +33,11 @@ export default function App() {
   const cargarDatos = async (userId) => {
     const { data: negocio } = await supabase.from('negocios').select('*').eq('id', userId).single()
     if (negocio) setNegocio(negocio)
+    else setNegocio(null)
 
     const { data: clientes } = await supabase.from('clientes').select('*').eq('user_id', userId)
     if (clientes) setClientes(clientes)
+    else setClientes([])
   }
 
   if (session === undefined) return null
