@@ -26,10 +26,10 @@ export default function ClientesPage({ onSeleccionar }) {
   )
 
   const handleVozCliente = async () => {
-    if (grabando) {
-      detenerGrabacion()
-      await esperar(1500)
-      const texto = transcripcionRef.current.trim()
+      if (grabando) {
+          detenerGrabacion()
+          await esperar(2000)
+          const texto = transcripcionRef.current.trim()
       if (!texto) return
 
       try {
