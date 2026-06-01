@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Save } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
+import { LogOut } from 'lucide-react'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
@@ -85,6 +86,12 @@ export default function AjustesPage() {
         >
           <Save size={15} />
           Guardar
+        </button>
+        <button
+          onClick={async () => { await supabase.auth.signOut() }}
+          className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+        >
+          <LogOut size={20} />
         </button>
       </header>
 
