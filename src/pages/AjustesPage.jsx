@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Save } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
@@ -9,44 +9,18 @@ export default function AjustesPage() {
   const navigate = useNavigate()
   const { negocio, setNegocio, setContadores } = useAppStore()
 
-  useEffect(() => {
-    const cargarNegocio = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase.from('negocios').select('*').eq('id', user.id).single()
-        if (data) {
-          setNegocio(data)
-          setForm({
-            nombre: data.nombre || '',
-            nif: data.nif || '',
-            direccion: data.direccion || '',
-            ciudad: data.ciudad || '',
-            telefono: data.telefono || '',
-            email: data.email || '',
-            iva_defecto: data.iva_defecto || 21,
-            color_marca: data.color_marca || '#FF5C39',
-            contador_presupuesto: data.contador_presupuesto || 1,
-            contador_factura: data.contador_factura || 1,
-            contador_albaran: data.contador_albaran || 1,
-          })
-        }
-      }
-    }
-    cargarNegocio()
-  }, [])
-
   const [form, setForm] = useState({
-    nombre: '',
-    nif: '',
-    direccion: '',
-    ciudad: '',
-    telefono: '',
-    email: '',
-    iva_defecto: 21,
-    color_marca: '#FF5C39',
-    contador_presupuesto: 1,
-    contador_factura: 1,
-    contador_albaran: 1,
+    nombre: negocio?.nombre || '',
+    nif: negocio?.nif || '',
+    direccion: negocio?.direccion || '',
+    ciudad: negocio?.ciudad || '',
+    telefono: negocio?.telefono || '',
+    email: negocio?.email || '',
+    iva_defecto: negocio?.iva_defecto || 21,
+    color_marca: negocio?.color_marca || '#FF5C39',
+    contador_presupuesto: negocio?.contador_presupuesto || 1,
+    contador_factura: negocio?.contador_factura || 1,
+    contador_albaran: negocio?.contador_albaran || 1,
   })
 
   const handleGuardar = async () => {
