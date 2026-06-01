@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, Download, Plus, X } from 'lucide-react'
 import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document'
+import { useAppStore } from '../store/appStore'
 
 export default function DocumentPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [doc, setDoc] = useState(location.state?.documento || null)
   const [generando, setGenerando] = useState(false)
+  const { negocio } = useAppStore()
 
   useEffect(() => {
     if (!doc) navigate('/')
@@ -190,7 +192,7 @@ export default function DocumentPage() {
           style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px' }}>
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Mi Negocio</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</h2>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-brand">{tipoLabel.toUpperCase()}</p>

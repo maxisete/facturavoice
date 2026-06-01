@@ -12,7 +12,7 @@ export default function DictatePage() {
   const tipo = location.state?.tipo || 'presupuesto'
 
   const { getSiguienteNumero, incrementarContador } = useAppStore()
-  const { grabando, transcripcion, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
+  const { grabando, transcripcion, transcripcionRef, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
 
   const [procesando, setProcesando] = useState(false)
   const [pasoActual, setPasoActual] = useState('')
@@ -22,16 +22,17 @@ export default function DictatePage() {
 
   const handleBotonMic = async () => {
     if (grabando) {
-      const textoFinal = detenerGrabacion()
-      await procesarTranscripcion(textoFinal)
+      detenerGrabacion()
+      await esperar(1500)
+      await procesarTranscripcion()
     } else {
       setErrorProceso(null)
       iniciarGrabacion()
     }
   }
 
-  const procesarTranscripcion = async (textoFinal) => {
-    const texto = (textoFinal || transcripcion).trim()
+  const procesarTranscripcion = async () => {
+    const texto = transcripcionRef.current.trim()
     if (!texto) {
       setErrorProceso('No te oímos bien, prueba de nuevo.')
       return
@@ -39,7 +40,6 @@ export default function DictatePage() {
 
     try {
       setProcesando(true)
-
       setPasoActual('Transcribiendo…')
       await esperar(500)
 
@@ -73,7 +73,6 @@ export default function DictatePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
       <header className="flex items-center px-5 pt-10 pb-4">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-400">
           <ChevronLeft size={24} />
@@ -81,9 +80,7 @@ export default function DictatePage() {
         <h1 className="font-bold text-gray-900 ml-1">{tipoLabel}</h1>
       </header>
 
-      {/* Área central */}
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-8">
-
         {!procesando && (
           <div className="text-center">
             <p className="text-xl font-bold text-gray-900">
@@ -95,7 +92,6 @@ export default function DictatePage() {
           </div>
         )}
 
-        {/* Botón micrófono */}
         <div className="relative flex items-center justify-center">
           {grabando && (
             <>
@@ -129,14 +125,12 @@ export default function DictatePage() {
           </button>
         </div>
 
-        {/* Cronómetro */}
         {grabando && (
           <p className="font-mono text-2xl font-medium text-brand">
             {formatearDuracion(duracion)}
           </p>
         )}
 
-        {/* Estado de procesamiento */}
         {procesando && (
           <div className="flex flex-col items-center gap-3">
             <div className="flex gap-1.5">
@@ -149,14 +143,12 @@ export default function DictatePage() {
           </div>
         )}
 
-        {/* Transcripción en tiempo real */}
         {grabando && transcripcion && (
           <div className="w-full max-w-sm bg-white rounded-2xl p-4 border border-gray-100">
             <p className="text-sm text-gray-500">{transcripcion}</p>
           </div>
         )}
 
-        {/* Error */}
         {(errorProceso || error) && (
           <div className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl px-4 py-3 w-full max-w-sm">
             <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
@@ -165,7 +157,6 @@ export default function DictatePage() {
         )}
       </div>
 
-      {/* Ejemplo */}
       {!grabando && !procesando && (
         <div className="px-5 pb-10 text-center">
           <p className="text-xs text-gray-300 italic">

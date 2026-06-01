@@ -107,6 +107,7 @@ export function useVoice() {
   return {
     grabando,
     transcripcion,
+    transcripcionRef,
     error,
     duracion,
     nivelAudio,
