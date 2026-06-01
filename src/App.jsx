@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage'
 export default function App() {
   const { darkMode } = useAppStore()
   const [session, setSession] = useState(undefined)
+  const { setNegocio, setClientes } = useAppStore()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
@@ -20,12 +21,22 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      if (session) cargarDatos(session.user.id)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
+      if (session) cargarDatos(session.user.id)
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  const cargarDatos = async (userId) => {
+    const { data: negocio } = await supabase.from('negocios').select('*').eq('id', userId).single()
+    if (negocio) setNegocio(negocio)
+
+    const { data: clientes } = await supabase.from('clientes').select('*').eq('user_id', userId)
+    if (clientes) setClientes(clientes)
+  }
 
   if (session === undefined) return null
 
