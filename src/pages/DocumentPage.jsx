@@ -9,10 +9,14 @@ export default function DocumentPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const docRaw = location.state?.documento || null
+  const lineasIniciales = (docRaw?.lineas || []).map(l => ({
+    ...l,
+    vat_rate: docRaw?.tipo === 'albaran' ? 0 : (l.vat_rate || 21)
+  }))
   const [doc, setDoc] = useState(docRaw ? {
     ...docRaw,
-    lineas: docRaw.lineas || [],
-    totales: docRaw.totales || { subtotal: 0, desgloseIva: [], totalIva: 0, total: 0 },
+    lineas: lineasIniciales,
+    totales: calcularTotales(lineasIniciales),
   } : null)
   const [generando, setGenerando] = useState(false)
   const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
@@ -75,7 +79,7 @@ export default function DocumentPage() {
   }
 
   const añadirLinea = () => {
-    const nuevasLineas = [...doc.lineas, { reference: null, description: '', quantity: 1, unit_price: 0, vat_rate: 21 }]
+    const nuevasLineas = [...doc.lineas, { reference: null, description: '', quantity: 1, unit_price: 0, vat_rate: doc.tipo === 'albaran' ? 0 : 21 }]
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
   }
 

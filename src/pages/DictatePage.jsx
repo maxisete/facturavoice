@@ -56,7 +56,10 @@ export default function DictatePage() {
 
       const clienteFinal = cliente || { id: 'prueba', nombre: 'Cliente de prueba' }
       const doc = crearDocumentoVacio(tipo, clienteFinal, numero)
-      const lineasDictado = resultado.lines || []
+      const lineasDictado = (resultado.lines || []).map(l => ({
+        ...l,
+        vat_rate: tipo === 'albaran' ? 0 : (l.vat_rate || 21)
+      }))
       doc.lineas = lineasImportadas ? [...lineasImportadas, ...lineasDictado] : lineasDictado
       doc.condiciones_pago = resultado.payment_terms
       doc.notas = resultado.notes

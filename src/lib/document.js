@@ -5,7 +5,7 @@ export function calcularTotales(lineas) {
 
   const desgloseIva = {}
   lineas.forEach(linea => {
-    const tipo = linea.vat_rate || 21
+    const tipo = linea.vat_rate ?? 21
     const base = (linea.quantity || 0) * (linea.unit_price || 0)
     if (!desgloseIva[tipo]) desgloseIva[tipo] = { base: 0, cuota: 0 }
     desgloseIva[tipo].base += base
