@@ -20,6 +20,7 @@ export default function DocumentPage() {
   } : null)
   const [generando, setGenerando] = useState(false)
   const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
+  const soloLectura = doc.tipo === 'factura' || (doc.tipo === 'albaran' && doc.facturado)
 
   useEffect(() => {
     if (!doc) navigate('/')
@@ -134,9 +135,6 @@ export default function DocumentPage() {
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <p className="text-xs text-gray-400 uppercase tracking-wide">Líneas</p>
-            <button onClick={añadirLinea} className="flex items-center gap-1 text-brand text-sm font-medium">
-              <Plus size={14} /> Añadir
-            </button>
           </div>
 
           {doc.lineas.map((linea, i) => (
@@ -144,21 +142,23 @@ export default function DocumentPage() {
               <div className="flex items-start justify-between gap-2">
                 <input
                   value={linea.description}
-                  onChange={e => actualizarLinea(i, 'description', e.target.value)}
+                  onChange={e => !soloLectura && actualizarLinea(i, 'description', e.target.value)}
                   placeholder="Descripción"
+                  readOnly={soloLectura}
                   className="flex-1 font-medium text-gray-900 bg-transparent focus:outline-none"
                 />
-                <button onClick={() => eliminarLinea(i)} className="text-red-300 hover:text-red-400">
-                  <X size={16} />
-                </button>
+                {!soloLectura && (
+                  <button onClick={() => eliminarLinea(i)} className="text-red-300 hover:text-red-400">
+                    <X size={16} />
+                  </button>
+                )}
               </div>
 
-              <input
-                value={linea.reference || ''}
-                onChange={e => actualizarLinea(i, 'reference', e.target.value || null)}
-                placeholder="Ref. (opcional)"
-                className="w-full text-xs text-gray-400 bg-gray-50 rounded-lg px-2.5 py-1.5 focus:outline-none"
-              />
+              {!soloLectura && (
+              <button onClick={añadirLinea} className="flex items-center gap-1 text-brand text-sm font-medium">
+                <Plus size={14} /> Añadir
+              </button>
+            )}
 
               <div className="flex gap-3 text-sm">
                 {false && (
@@ -173,11 +173,22 @@ export default function DocumentPage() {
                   </div>
                 )}
                 <div>
+                  <p className="text-xs text-gray-400">Cant.</p>
+                  <input
+                    type="number"
+                    value={linea.quantity}
+                    onChange={e => !soloLectura && actualizarLinea(i, 'quantity', parseFloat(e.target.value) || 0)}
+                    readOnly={soloLectura}
+                    className="w-14 text-gray-900 bg-transparent focus:outline-none font-mono"
+                  />
+                </div>
+                <div>
                   <p className="text-xs text-gray-400">Precio</p>
                   <input
                     type="number"
                     value={linea.unit_price}
-                    onChange={e => actualizarLinea(i, 'unit_price', parseFloat(e.target.value) || 0)}
+                    onChange={e => !soloLectura && actualizarLinea(i, 'unit_price', parseFloat(e.target.value) || 0)}
+                    readOnly={soloLectura}
                     className="w-20 text-gray-900 bg-transparent focus:outline-none font-mono"
                   />
                 </div>
@@ -229,8 +240,9 @@ export default function DocumentPage() {
           <p className="text-xs text-gray-400 mb-2 uppercase tracking-wide">Notas</p>
           <textarea
             value={doc.notas || ''}
-            onChange={e => setDoc(prev => ({ ...prev, notas: e.target.value }))}
+            onChange={e => !soloLectura && setDoc(prev => ({ ...prev, notas: e.target.value }))}
             placeholder="Condiciones, forma de pago…"
+            readOnly={soloLectura}
             rows={3}
             className="w-full text-sm text-gray-600 bg-transparent focus:outline-none resize-none"
           />
