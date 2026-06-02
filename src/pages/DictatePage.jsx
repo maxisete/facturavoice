@@ -11,6 +11,7 @@ export default function DictatePage() {
   const navigate = useNavigate()
   const location = useLocation()
   const tipo = location.state?.tipo || 'presupuesto'
+  const lineasImportadas = location.state?.lineasImportadas || null
 
   const { getSiguienteNumero, incrementarContador } = useAppStore()
   const { grabando, transcripcion, transcripcionRef, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
@@ -34,7 +35,7 @@ export default function DictatePage() {
 
   const procesarTranscripcion = async () => {
     const texto = transcripcionRef.current.trim()
-    if (!texto) {
+    if (!texto && !lineasImportadas) {
       setErrorProceso('No te oímos bien, prueba de nuevo.')
       return
     }
@@ -55,7 +56,8 @@ export default function DictatePage() {
 
       const clienteFinal = cliente || { id: 'prueba', nombre: 'Cliente de prueba' }
       const doc = crearDocumentoVacio(tipo, clienteFinal, numero)
-      doc.lineas = resultado.lines || []
+      const lineasDictado = resultado.lines || []
+      doc.lineas = lineasImportadas ? [...lineasImportadas, ...lineasDictado] : lineasDictado
       doc.condiciones_pago = resultado.payment_terms
       doc.notas = resultado.notes
       doc.totales = calcularTotales(doc.lineas)

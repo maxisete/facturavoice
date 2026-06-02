@@ -8,6 +8,7 @@ export default function FacturaProveedorPage() {
   const location = useLocation()
   const factura = location.state?.factura
   const [seleccionadas, setSeleccionadas] = useState([])
+  const [tipoDoc, setTipoDoc] = useState('presupuesto')
 
   if (!factura) {
     navigate('/compras')
@@ -39,7 +40,7 @@ export default function FacturaProveedorPage() {
         vat_rate: l.iva || 21,
       }
     })
-    navigate('/dictar', { state: { lineasImportadas: lineasImportar } })
+    navigate('/dictar', { state: { lineasImportadas: lineasImportar, tipo: tipoDoc } })
   }
 
   return (
@@ -98,15 +99,33 @@ export default function FacturaProveedorPage() {
           ))}
         </div>
 
-        {/* Botón importar */}
+        {/* Selector tipo + Botón importar */}
         {seleccionadas.length > 0 && (
-          <button
-            onClick={handleImportar}
-            className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-brand transition-colors"
-          >
-            <Plus size={22} />
-            Importar {seleccionadas.length} artículo{seleccionadas.length !== 1 ? 's' : ''} a nuevo documento
-          </button>
+          <div className="space-y-3">
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <p className="px-4 pt-3 pb-2 text-xs text-gray-400 uppercase tracking-wide">Tipo de documento</p>
+              <div className="grid grid-cols-3 gap-2 px-4 pb-4">
+                {['presupuesto', 'factura', 'albaran'].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setTipoDoc(t)}
+                    className={`py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                      tipoDoc === t ? 'border-brand bg-orange-50 text-brand' : 'border-gray-200 text-gray-500'
+                    }`}
+                  >
+                    {t === 'presupuesto' ? 'Presupuesto' : t === 'factura' ? 'Factura' : 'Albarán'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={handleImportar}
+              className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white py-4 rounded-2xl font-semibold text-lg hover:bg-brand transition-colors"
+            >
+              <Plus size={22} />
+              Importar {seleccionadas.length} artículo{seleccionadas.length !== 1 ? 's' : ''} a nuevo documento
+            </button>
+          </div>
         )}
       </div>
     </div>
