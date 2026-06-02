@@ -9,6 +9,7 @@ import AjustesPage from './pages/AjustesPage'
 import ClientesPage from './pages/ClientesPage'
 import LoginPage from './pages/LoginPage'
 import ComprasPage from './pages/ComprasPage'
+import FacturaProveedorPage from './pages/FacturaProveedorPage'
 import NavBar from './components/NavBar'
 
 const CON_NAVBAR = ['/', '/compras', '/ajustes']
@@ -70,6 +71,7 @@ export default function App() {
           <Route path="/ajustes" element={session ? <AjustesPage /> : <Navigate to="/login" />} />
           <Route path="/clientes" element={session ? <ClientesPage /> : <Navigate to="/login" />} />
           <Route path="/compras" element={session ? <ComprasPage /> : <Navigate to="/login" />} />
+          <Route path="/factura-proveedor" element={session ? <FacturaProveedorPage /> : <Navigate to="/login" />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Upload, Camera, FileText } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 export default function ComprasPage() {
   const [facturas, setFacturas] = useState([])
   const [subiendo, setSubiendo] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     cargarFacturas()
@@ -180,7 +182,7 @@ ${textoFactura.substring(0, 4000)}`
 
       <div className="space-y-3">
         {facturas.map(f => (
-          <div key={f.id} className="bg-white rounded-2xl p-4 border border-gray-100">
+          <div key={f.id} onClick={() => navigate('/factura-proveedor', { state: { factura: f } })} className="bg-white rounded-2xl p-4 border border-gray-100 cursor-pointer hover:border-brand transition-colors">
             <div className="flex items-start justify-between">
               <div>
                 <p className="font-medium text-gray-900">{f.nombre_proveedor}</p>
