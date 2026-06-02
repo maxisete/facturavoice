@@ -64,7 +64,7 @@ export default function DocumentosPage() {
     )
   }
 
-  const handleConvertirEnFactura = () => {
+  const handleConvertirEnFactura = async () => {
     if (seleccionados.length === 0) return
 
     const iva = 21
@@ -93,6 +93,12 @@ export default function DocumentosPage() {
       totales: { subtotal: 0, desgloseIva: [], totalIva: 0, total: 0 },
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await Promise.all(seleccionados.map(alb =>
+        supabase.from('documentos').update({ facturado: true }).eq('id', alb.id)
+      ))
+    }
     navigate('/documento', { state: { documento: factura } })
   }
 
@@ -187,13 +193,14 @@ export default function DocumentosPage() {
                     <div
                       key={doc.id}
                       onClick={() => {
-                        if (modoSeleccion && doc.tipo === 'albaran') {
+                        if (modoSeleccion && doc.tipo === 'albaran' && !doc.facturado) {
                           toggleSeleccion(doc)
                         } else if (!modoSeleccion) {
                           navigate('/documento', { state: { documento: doc } })
                         }
                       }}
                       className={`flex items-center gap-3 px-4 py-3 border-b border-gray-50 cursor-pointer transition-colors ${
+                        doc.facturado ? 'opacity-40' :
                         seleccionados.find(d => d.id === doc.id) ? 'bg-orange-50' : 'hover:bg-gray-50'
                       }`}
                     >
