@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, Download, Plus, X } from 'lucide-react'
 import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document'
 import { useAppStore } from '../store/appStore'
+import { supabase } from '../lib/supabase'
 
 export default function DocumentPage() {
   const navigate = useNavigate()
@@ -16,6 +17,28 @@ export default function DocumentPage() {
   }, [])
 
   if (!doc) return null
+
+  useEffect(() => {
+  if (!doc) return
+  const guardarEnSupabase = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { error } = await supabase.from('documentos').upsert({
+      id: doc.id,
+      user_id: user.id,
+      tipo: doc.tipo,
+      numero: doc.numero,
+      cliente: doc.cliente,
+      lineas: doc.lineas,
+      totales: doc.totales,
+      fecha: doc.fecha,
+      notas: doc.notas || null,
+    })
+    if (error) console.error('Error guardando documento:', error)
+    else console.log('Documento guardado OK:', doc.numero)
+  }
+  guardarEnSupabase()
+}, [doc?.id])
 
   const handleDescargarPDF = async () => {
     setGenerando(true)
