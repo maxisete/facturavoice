@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileText, Receipt, Truck, Plus, Settings } from 'lucide-react'
+import { FileText, Receipt, Truck, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatearEuros, formatearFecha } from '../lib/document'
 
@@ -31,9 +31,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50 px-5 pt-12 pb-8">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-2xl font-bold text-gray-900">Hola 👋</h1>
-        <button onClick={() => navigate('/ajustes')} className="p-2 text-gray-400 hover:text-gray-600">
-          <Settings size={22} />
-        </button>
       </div>
       <p className="text-gray-500 mb-8">¿Qué necesitas hoy?</p>
 

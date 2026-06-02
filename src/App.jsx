@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import { useAppStore } from './store/appStore'
@@ -8,6 +8,23 @@ import DocumentPage from './pages/DocumentPage'
 import AjustesPage from './pages/AjustesPage'
 import ClientesPage from './pages/ClientesPage'
 import LoginPage from './pages/LoginPage'
+import ComprasPage from './pages/ComprasPage'
+import NavBar from './components/NavBar'
+
+const CON_NAVBAR = ['/', '/compras', '/ajustes']
+
+function Layout({ session, children }) {
+  const location = useLocation()
+  const mostrarNav = session && CON_NAVBAR.includes(location.pathname)
+  return (
+    <>
+      <div className={mostrarNav ? 'pb-16' : ''}>
+        {children}
+      </div>
+      {mostrarNav && <NavBar />}
+    </>
+  )
+}
 
 export default function App() {
   const { darkMode } = useAppStore()
@@ -44,14 +61,17 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage />} />
-        <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path="/dictar" element={session ? <DictatePage /> : <Navigate to="/login" />} />
-        <Route path="/documento" element={session ? <DocumentPage /> : <Navigate to="/login" />} />
-        <Route path="/ajustes" element={session ? <AjustesPage /> : <Navigate to="/login" />} />
-        <Route path="/clientes" element={session ? <ClientesPage /> : <Navigate to="/login" />} />
-      </Routes>
+      <Layout session={session}>
+        <Routes>
+          <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
+          <Route path="/dictar" element={session ? <DictatePage /> : <Navigate to="/login" />} />
+          <Route path="/documento" element={session ? <DocumentPage /> : <Navigate to="/login" />} />
+          <Route path="/ajustes" element={session ? <AjustesPage /> : <Navigate to="/login" />} />
+          <Route path="/clientes" element={session ? <ClientesPage /> : <Navigate to="/login" />} />
+          <Route path="/compras" element={session ? <ComprasPage /> : <Navigate to="/login" />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   )
 }
