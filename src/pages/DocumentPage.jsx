@@ -161,15 +161,17 @@ export default function DocumentPage() {
               />
 
               <div className="flex gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-gray-400">Cant.</p>
-                  <input
-                    type="number"
-                    value={linea.quantity}
-                    onChange={e => actualizarLinea(i, 'quantity', parseFloat(e.target.value) || 0)}
-                    className="w-14 text-gray-900 bg-transparent focus:outline-none font-mono"
-                  />
-                </div>
+                {false && (
+                  <div>
+                    <p className="text-xs text-gray-400">IVA %</p>
+                    <input
+                      type="number"
+                      value={linea.vat_rate}
+                      onChange={e => actualizarLinea(i, 'vat_rate', parseFloat(e.target.value) || 21)}
+                      className="w-12 text-gray-900 bg-transparent focus:outline-none font-mono"
+                    />
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-gray-400">Precio</p>
                   <input
@@ -177,15 +179,6 @@ export default function DocumentPage() {
                     value={linea.unit_price}
                     onChange={e => actualizarLinea(i, 'unit_price', parseFloat(e.target.value) || 0)}
                     className="w-20 text-gray-900 bg-transparent focus:outline-none font-mono"
-                  />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400">IVA %</p>
-                  <input
-                    type="number"
-                    value={linea.vat_rate}
-                    onChange={e => actualizarLinea(i, 'vat_rate', parseFloat(e.target.value) || 21)}
-                    className="w-12 text-gray-900 bg-transparent focus:outline-none font-mono"
                   />
                 </div>
                 <div className="ml-auto text-right">
