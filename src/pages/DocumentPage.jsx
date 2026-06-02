@@ -8,9 +8,14 @@ import { supabase } from '../lib/supabase'
 export default function DocumentPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [doc, setDoc] = useState(location.state?.documento || null)
+  const docRaw = location.state?.documento || null
+  const [doc, setDoc] = useState(docRaw ? {
+    ...docRaw,
+    lineas: docRaw.lineas || [],
+    totales: docRaw.totales || { subtotal: 0, desgloseIva: [], totalIva: 0, total: 0 },
+  } : null)
   const [generando, setGenerando] = useState(false)
-  const { negocio, plantillaPDF } = useAppStore()
+  const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
 
   useEffect(() => {
     if (!doc) navigate('/')
@@ -77,6 +82,20 @@ export default function DocumentPage() {
   const eliminarLinea = (i) => {
     const nuevasLineas = doc.lineas.filter((_, idx) => idx !== i)
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
+  }
+
+  const handleConvertirAFactura = () => {
+    const numero = getSiguienteNumero('factura')
+    incrementarContador('factura')
+    const factura = {
+      ...doc,
+      id: crypto.randomUUID(),
+      tipo: 'factura',
+      numero,
+      fecha: new Date().toISOString(),
+    }
+    navigate('/')
+    setTimeout(() => navigate('/documento', { state: { documento: factura } }), 150)
   }
 
   return (
@@ -186,7 +205,7 @@ export default function DocumentPage() {
             <span>Base imponible</span>
             <span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span>
           </div>
-          {doc.totales.desgloseIva?.map(v => (
+          {(doc.totales.desgloseIva || []).map(v => (
             <div key={v.tipo} className="flex justify-between text-sm text-gray-500">
               <span>IVA {v.tipo}%</span>
               <span className="font-mono">{formatearEuros(v.cuota)}</span>
@@ -198,6 +217,16 @@ export default function DocumentPage() {
           </div>
         </div>
 
+        {/* Convertir a factura */}
+        {doc.tipo === 'presupuesto' && (
+          <button
+            onClick={handleConvertirAFactura}
+            className="w-full flex items-center justify-center gap-2 border-2 border-gray-900 text-gray-900 py-3 rounded-2xl font-medium text-sm hover:bg-gray-900 hover:text-white transition-colors"
+          >
+            Convertir a Factura
+          </button>
+        )}
+        
         {/* Notas */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100">
           <p className="text-xs text-gray-400 mb-2 uppercase tracking-wide">Notas</p>

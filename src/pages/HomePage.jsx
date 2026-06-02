@@ -67,13 +67,13 @@ export default function HomePage() {
           <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Recientes</p>
           <div className="space-y-2">
             {recientes.map(doc => (
-              <div key={doc.id} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900 text-sm">{doc.numero}</p>
-                  <p className="text-xs text-gray-400">{doc.cliente?.nombre} · {formatearFecha(doc.fecha)}</p>
-                </div>
-                <p className="font-mono font-medium text-brand text-sm">{formatearEuros(doc.totales?.total)}</p>
+              <div key={doc.id} onClick={() => navigate('/documento', { state: { documento: doc } })} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between cursor-pointer hover:border-brand transition-colors">
+              <div>
+                <p className="font-medium text-gray-900 text-sm">{doc.numero}</p>
+                <p className="text-xs text-gray-400">{doc.cliente?.nombre} · {formatearFecha(doc.fecha)}</p>
               </div>
+              <p className="font-mono font-medium text-brand text-sm">{formatearEuros(doc.totales?.total)}</p>
+            </div>
             ))}
           </div>
         </div>
