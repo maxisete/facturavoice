@@ -1,8 +1,9 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, ShoppingBag, Settings } from 'lucide-react'
+import { Home, FileText, ShoppingBag, Settings } from 'lucide-react'
 
 const TABS = [
   { path: '/', label: 'Inicio', icono: Home },
+  { path: '/documentos', label: 'Documentos', icono: FileText },
   { path: '/compras', label: 'Compras', icono: ShoppingBag },
   { path: '/ajustes', label: 'Ajustes', icono: Settings },
 ]
