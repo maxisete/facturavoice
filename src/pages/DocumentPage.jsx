@@ -10,7 +10,7 @@ export default function DocumentPage() {
   const location = useLocation()
   const [doc, setDoc] = useState(location.state?.documento || null)
   const [generando, setGenerando] = useState(false)
-  const { negocio } = useAppStore()
+  const { negocio, plantillaPDF } = useAppStore()
 
   useEffect(() => {
     if (!doc) navigate('/')
@@ -211,63 +211,225 @@ export default function DocumentPage() {
         </div>
       </div>
       {/* Preview oculto para el PDF */}
-        <div id="documento-preview" className="bg-white p-8 rounded-2xl border border-gray-100"
-          style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px' }}>
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</h2>
-              {negocio?.nif && <p className="text-sm text-gray-500">{negocio.nif}</p>}
-              {negocio?.direccion && <p className="text-sm text-gray-500">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
-              {negocio?.telefono && <p className="text-sm text-gray-500">{negocio.telefono}</p>}
-              {negocio?.email && <p className="text-sm text-gray-500">{negocio.email}</p>}
+      <div id="documento-preview" style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px' }}>
+
+        {/* CLÁSICA */}
+        {plantillaPDF === 'clasica' && (
+          <div className="bg-white p-8">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</h2>
+                {negocio?.nif && <p className="text-sm text-gray-500">{negocio.nif}</p>}
+                {negocio?.direccion && <p className="text-sm text-gray-500">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
+                {negocio?.telefono && <p className="text-sm text-gray-500">{negocio.telefono}</p>}
+                {negocio?.email && <p className="text-sm text-gray-500">{negocio.email}</p>}
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-brand">{tipoLabel.toUpperCase()}</p>
+                <p className="text-gray-500">{doc.numero}</p>
+                <p className="text-gray-500">{formatearFecha(doc.fecha)}</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-brand">{tipoLabel.toUpperCase()}</p>
-              <p className="text-gray-500">{doc.numero}</p>
-              <p className="text-gray-500">{formatearFecha(doc.fecha)}</p>
+            <div className="mb-6">
+              <p className="text-xs text-gray-400 uppercase mb-1">Cliente</p>
+              <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
             </div>
-          </div>
-          <div className="mb-6">
-            <p className="text-xs text-gray-400 uppercase mb-1">Cliente</p>
-            <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
-          </div>
-          <table className="w-full mb-6">
-            <thead>
-              <tr className="bg-gray-900 text-white">
-                <th className="text-left p-3 text-xs">Descripción</th>
-                <th className="text-right p-3 text-xs">Cant.</th>
-                <th className="text-right p-3 text-xs">Precio</th>
-                <th className="text-right p-3 text-xs">IVA</th>
-                <th className="text-right p-3 text-xs">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {doc.lineas.map((l, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="p-3 text-sm">{l.description}</td>
-                  <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
-                  <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
-                  <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
-                  <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+            <table className="w-full mb-6">
+              <thead>
+                <tr className="bg-gray-900 text-white">
+                  <th className="text-left p-3 text-xs">Descripción</th>
+                  <th className="text-right p-3 text-xs">Cant.</th>
+                  <th className="text-right p-3 text-xs">Precio</th>
+                  <th className="text-right p-3 text-xs">IVA</th>
+                  <th className="text-right p-3 text-xs">Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="flex justify-end">
-            <div className="w-48 space-y-1">
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Base</span><span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>IVA</span><span className="font-mono">{formatearEuros(doc.totales.totalIva)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200">
-                <span>Total</span><span className="font-mono text-brand">{formatearEuros(doc.totales.total)}</span>
+              </thead>
+              <tbody>
+                {doc.lineas.map((l, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    <td className="p-3 text-sm">{l.description}</td>
+                    <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
+                    <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
+                    <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
+                    <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-end">
+              <div className="w-48 space-y-1">
+                <div className="flex justify-between text-sm text-gray-500"><span>Base</span><span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span></div>
+                <div className="flex justify-between text-sm text-gray-500"><span>IVA</span><span className="font-mono">{formatearEuros(doc.totales.totalIva)}</span></div>
+                <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200"><span>Total</span><span className="font-mono text-brand">{formatearEuros(doc.totales.total)}</span></div>
               </div>
             </div>
+            {doc.notas && <p className="mt-6 text-sm text-gray-500">{doc.notas}</p>}
           </div>
-          {doc.notas && <p className="mt-6 text-sm text-gray-500">{doc.notas}</p>}
-        </div>
+        )}
+
+        {/* MINIMAL */}
+        {plantillaPDF === 'minimal' && (
+          <div className="bg-white p-12">
+            <div className="mb-10">
+              <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">{tipoLabel}</p>
+              <p className="text-4xl font-light text-gray-900">{doc.numero}</p>
+              <p className="text-sm text-gray-400 mt-1">{formatearFecha(doc.fecha)}</p>
+            </div>
+            <div className="flex justify-between mb-10">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">De</p>
+                <p className="text-sm font-medium text-gray-900">{negocio?.nombre || 'Mi Negocio'}</p>
+                {negocio?.nif && <p className="text-xs text-gray-400">{negocio.nif}</p>}
+                {negocio?.email && <p className="text-xs text-gray-400">{negocio.email}</p>}
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Para</p>
+                <p className="text-sm font-medium text-gray-900">{doc.cliente?.nombre}</p>
+              </div>
+            </div>
+            <table className="w-full mb-8">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left pb-2 text-xs text-gray-400 uppercase tracking-widest">Descripción</th>
+                  <th className="text-right pb-2 text-xs text-gray-400 uppercase tracking-widest">Cant.</th>
+                  <th className="text-right pb-2 text-xs text-gray-400 uppercase tracking-widest">Precio</th>
+                  <th className="text-right pb-2 text-xs text-gray-400 uppercase tracking-widest">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doc.lineas.map((l, i) => (
+                  <tr key={i} className="border-b border-gray-50">
+                    <td className="py-3 text-sm text-gray-800">{l.description}</td>
+                    <td className="py-3 text-sm text-right text-gray-600">{l.quantity}</td>
+                    <td className="py-3 text-sm text-right text-gray-600">{formatearEuros(l.unit_price)}</td>
+                    <td className="py-3 text-sm text-right font-medium text-gray-900">{formatearEuros(l.quantity * l.unit_price)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-end">
+              <div className="w-48 space-y-1">
+                <div className="flex justify-between text-sm text-gray-400"><span>Base</span><span>{formatearEuros(doc.totales.subtotal)}</span></div>
+                <div className="flex justify-between text-sm text-gray-400"><span>IVA</span><span>{formatearEuros(doc.totales.totalIva)}</span></div>
+                <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200"><span>Total</span><span>{formatearEuros(doc.totales.total)}</span></div>
+              </div>
+            </div>
+            {doc.notas && <p className="mt-8 text-xs text-gray-400">{doc.notas}</p>}
+          </div>
+        )}
+
+        {/* MODERNA */}
+        {plantillaPDF === 'moderna' && (
+          <div className="bg-white">
+            <div className="bg-gray-900 p-8 text-white">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-2xl font-bold">{negocio?.nombre || 'Mi Negocio'}</p>
+                  {negocio?.nif && <p className="text-gray-400 text-sm">{negocio.nif}</p>}
+                  {negocio?.email && <p className="text-gray-400 text-sm">{negocio.email}</p>}
+                </div>
+                <div className="text-right">
+                  <p className="text-brand text-3xl font-bold">{tipoLabel.toUpperCase()}</p>
+                  <p className="text-gray-400">{doc.numero}</p>
+                  <p className="text-gray-400 text-sm">{formatearFecha(doc.fecha)}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-8">
+              <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Cliente</p>
+                <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+              </div>
+              <table className="w-full mb-6">
+                <thead>
+                  <tr style={{ backgroundColor: '#FF5C39' }} className="text-white">
+                    <th className="text-left p-3 text-xs">Descripción</th>
+                    <th className="text-right p-3 text-xs">Cant.</th>
+                    <th className="text-right p-3 text-xs">Precio</th>
+                    <th className="text-right p-3 text-xs">IVA</th>
+                    <th className="text-right p-3 text-xs">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {doc.lineas.map((l, i) => (
+                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="p-3 text-sm">{l.description}</td>
+                      <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
+                      <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
+                      <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
+                      <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="flex justify-end">
+                <div className="w-52 bg-gray-900 text-white rounded-xl p-4 space-y-1">
+                  <div className="flex justify-between text-sm text-gray-400"><span>Base</span><span>{formatearEuros(doc.totales.subtotal)}</span></div>
+                  <div className="flex justify-between text-sm text-gray-400"><span>IVA</span><span>{formatearEuros(doc.totales.totalIva)}</span></div>
+                  <div className="flex justify-between font-bold text-brand pt-1 border-t border-gray-700"><span>Total</span><span>{formatearEuros(doc.totales.total)}</span></div>
+                </div>
+              </div>
+              {doc.notas && <p className="mt-6 text-sm text-gray-500">{doc.notas}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* EDITORIAL */}
+        {plantillaPDF === 'editorial' && (
+          <div className="bg-white p-8">
+            <div className="border-l-4 border-brand pl-6 mb-8">
+              <p className="text-xs text-gray-400 uppercase tracking-widest">{tipoLabel}</p>
+              <p className="text-5xl font-black text-gray-900">{doc.numero}</p>
+              <p className="text-sm text-gray-400">{formatearFecha(doc.fecha)}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-8 mb-8">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Emisor</p>
+                <p className="font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</p>
+                {negocio?.nif && <p className="text-sm text-gray-500">{negocio.nif}</p>}
+                {negocio?.direccion && <p className="text-sm text-gray-500">{negocio.direccion}</p>}
+                {negocio?.telefono && <p className="text-sm text-gray-500">{negocio.telefono}</p>}
+                {negocio?.email && <p className="text-sm text-gray-500">{negocio.email}</p>}
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Cliente</p>
+                <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+              </div>
+            </div>
+            <table className="w-full mb-6">
+              <thead>
+                <tr className="border-t-2 border-b-2 border-gray-900">
+                  <th className="text-left py-2 text-xs uppercase tracking-widest">Descripción</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest">Cant.</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest">Precio</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest">IVA</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doc.lineas.map((l, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    <td className="py-3 text-sm">{l.description}</td>
+                    <td className="py-3 text-sm text-right font-mono">{l.quantity}</td>
+                    <td className="py-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
+                    <td className="py-3 text-sm text-right">{l.vat_rate}%</td>
+                    <td className="py-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-end">
+              <div className="w-48 space-y-1">
+                <div className="flex justify-between text-sm text-gray-500"><span>Base</span><span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span></div>
+                <div className="flex justify-between text-sm text-gray-500"><span>IVA</span><span className="font-mono">{formatearEuros(doc.totales.totalIva)}</span></div>
+                <div className="flex justify-between font-black text-gray-900 pt-1 border-t-2 border-gray-900"><span>Total</span><span className="font-mono text-brand">{formatearEuros(doc.totales.total)}</span></div>
+              </div>
+            </div>
+            {doc.notas && <p className="mt-6 text-sm text-gray-500 border-t border-gray-100 pt-4">{doc.notas}</p>}
+          </div>
+        )}
+
+      </div>
     </div>
   )
 }

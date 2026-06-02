@@ -15,6 +15,10 @@ export const useAppStore = create(
       addCliente: (cliente) => set(s => ({ clientes: [...s.clientes, cliente] })),
       setClientes: (clientes) => set({ clientes }),
 
+      // Plantilla PDF
+      plantillaPDF: 'clasica',
+      setPlantillaPDF: (plantilla) => set({ plantillaPDF: plantilla }),
+      
       // Modo oscuro
       modoOscuro: false,
       toggleModoOscuro: () => set(s => ({ modoOscuro: !s.modoOscuro })),
@@ -49,6 +53,7 @@ export const useAppStore = create(
         negocio: state.negocio,
         clientes: state.clientes,
         modoOscuro: state.modoOscuro,
+        plantillaPDF: state.plantillaPDF,
         contadores: state.contadores,
       })
     }

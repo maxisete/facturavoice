@@ -7,8 +7,7 @@ import { LogOut } from 'lucide-react'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
-  const { negocio, setNegocio, setContadores } = useAppStore()
-
+  const { negocio, setNegocio, setContadores, plantillaPDF, setPlantillaPDF } = useAppStore()
   const [form, setForm] = useState({
     nombre: negocio?.nombre || '',
     nif: negocio?.nif || '',
@@ -145,6 +144,24 @@ export default function AjustesPage() {
               onChange={e => handleCampo('color_marca', e.target.value)}
               className="w-10 h-10 rounded-xl cursor-pointer border-0"
             />
+          </div>
+          <div className="px-4 py-3 border-t border-gray-50">
+            <p className="text-xs text-gray-400 mb-2">Plantilla de PDF</p>
+            <div className="grid grid-cols-2 gap-2">
+              {['clasica', 'minimal', 'moderna', 'editorial'].map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPlantillaPDF(p)}
+                  className={`py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                    plantillaPDF === p
+                      ? 'border-brand bg-orange-50 text-brand'
+                      : 'border-gray-200 text-gray-500'
+                  }`}
+                >
+                  {p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
