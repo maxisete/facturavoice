@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FileText, Receipt, Truck, Plus, Settings } from 'lucide-react'
+import { supabase } from '../lib/supabase'
+import { formatearEuros, formatearFecha } from '../lib/document'
 
 const TIPOS = [
   { id: 'presupuesto', label: 'Presupuesto', icono: FileText },
@@ -11,15 +13,28 @@ const TIPOS = [
 export default function HomePage() {
   const navigate = useNavigate()
   const [tipo, setTipo] = useState('presupuesto')
+  const [recientes, setRecientes] = useState([])
+
+  useEffect(() => {
+    const cargarRecientes = async () => {
+      const { data, error } = await supabase
+        .from('documentos')
+        .select('id, tipo, numero, cliente, totales, fecha')
+        .order('created_at', { ascending: false })
+        .limit(5)
+      if (!error && data) setRecientes(data)
+    }
+    cargarRecientes()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50 px-5 pt-12 pb-8">
-    <div className="flex items-center justify-between mb-1">
-      <h1 className="text-2xl font-bold text-gray-900">Hola 👋</h1>
-      <button onClick={() => navigate('/ajustes')} className="p-2 text-gray-400 hover:text-gray-600">
-        <Settings size={22} />
-      </button>
-    </div>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-2xl font-bold text-gray-900">Hola 👋</h1>
+        <button onClick={() => navigate('/ajustes')} className="p-2 text-gray-400 hover:text-gray-600">
+          <Settings size={22} />
+        </button>
+      </div>
       <p className="text-gray-500 mb-8">¿Qué necesitas hoy?</p>
 
       {/* Selector de tipo */}
@@ -29,15 +44,10 @@ export default function HomePage() {
             key={id}
             onClick={() => setTipo(id)}
             className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-              tipo === id
-                ? 'border-brand bg-orange-50'
-                : 'border-gray-200 bg-white'
+              tipo === id ? 'border-brand bg-orange-50' : 'border-gray-200 bg-white'
             }`}
           >
-            <Icono
-              size={22}
-              className={tipo === id ? 'text-brand' : 'text-gray-400'}
-            />
+            <Icono size={22} className={tipo === id ? 'text-brand' : 'text-gray-400'} />
             <span className={`text-xs font-medium ${tipo === id ? 'text-brand' : 'text-gray-500'}`}>
               {label}
             </span>
@@ -53,6 +63,24 @@ export default function HomePage() {
         <Plus size={22} />
         Nuevo {tipo.charAt(0).toUpperCase() + tipo.slice(1)}
       </button>
+
+      {/* Recientes */}
+      {recientes.length > 0 && (
+        <div className="mt-8">
+          <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Recientes</p>
+          <div className="space-y-2">
+            {recientes.map(doc => (
+              <div key={doc.id} className="bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">{doc.numero}</p>
+                  <p className="text-xs text-gray-400">{doc.cliente?.nombre} · {formatearFecha(doc.fecha)}</p>
+                </div>
+                <p className="font-mono font-medium text-brand text-sm">{formatearEuros(doc.totales?.total)}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
