@@ -15,6 +15,7 @@ export default function AjustesPage() {
     ciudad: negocio?.ciudad || '',
     telefono: negocio?.telefono || '',
     email: negocio?.email || '',
+    nombre_usuario: negocio?.nombre_usuario || '',
     iva_defecto: negocio?.iva_defecto || 21,
     color_marca: negocio?.color_marca || '#FF5C39',
     contador_presupuesto: negocio?.contador_presupuesto || 1,
@@ -73,6 +74,7 @@ export default function AjustesPage() {
           <p className="px-4 pt-4 pb-2 text-xs text-gray-400 uppercase tracking-wide">Tu negocio</p>
 
           {[
+            { campo: 'nombre_usuario', label: 'Tu nombre', tipo: 'text', placeholder: 'Maxi, Emilio, Juan Luis…' },
             { campo: 'nombre', label: 'Nombre o razón social', tipo: 'text', placeholder: 'Pinturas García S.L.' },
             { campo: 'nif', label: 'NIF / CIF', tipo: 'text', placeholder: 'B12345678' },
             { campo: 'direccion', label: 'Dirección', tipo: 'text', placeholder: 'Calle Mayor 1' },
