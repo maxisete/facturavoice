@@ -35,9 +35,23 @@ export default function LoginPage() {
 
   const handleSubmit = async () => {
     setError(null)
-    if (modo === 'registro' && password !== confirmar) {
-      setError('Las contraseñas no coinciden.')
-      return
+    if (modo === 'registro') {
+      if (password.length < 8) {
+        setError('La contraseña debe tener al menos 8 caracteres.')
+        return
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError('La contraseña debe contener al menos una letra mayúscula.')
+        return
+      }
+      if (!/[0-9]/.test(password)) {
+        setError('La contraseña debe contener al menos un número.')
+        return
+      }
+      if (password !== confirmar) {
+        setError('Las contraseñas no coinciden.')
+        return
+      }
     }
     setMensaje(null)
     setCargando(true)
