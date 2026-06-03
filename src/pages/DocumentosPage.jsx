@@ -57,12 +57,16 @@ export default function DocumentosPage() {
   }
 
   const toggleSeleccion = (doc) => {
-    setSeleccionados(prev =>
-      prev.find(d => d.id === doc.id)
-        ? prev.filter(d => d.id !== doc.id)
-        : [...prev, doc]
-    )
-  }
+  setSeleccionados(prev => {
+    if (prev.find(d => d.id === doc.id)) {
+      return prev.filter(d => d.id !== doc.id)
+    }
+    if (prev.length > 0 && prev[0].cliente?.nombre !== doc.cliente?.nombre) {
+      return prev // bloquear: es de otro cliente
+    }
+    return [...prev, doc]
+  })
+}
 
   const handleConvertirEnFactura = async () => {
     if (seleccionados.length === 0) return
@@ -238,11 +242,20 @@ export default function DocumentosPage() {
           )
         })}
         
-        {!cargando && documentos.map(doc => (
+        {!cargando && documentos.map(doc => {
+          const bloqueado = modoSeleccion && seleccionados.length > 0 && !seleccionados.find(d => d.id === doc.id) && seleccionados[0].cliente?.nombre !== doc.cliente?.nombre
+          return (
           <div
             key={doc.id}
-            onClick={() => modoSeleccion ? toggleSeleccion(doc) : navigate('/documento', { state: { documento: doc } })}
+            onClick={() => {
+              if (modoSeleccion && !bloqueado && !doc.facturado) {
+                toggleSeleccion(doc)
+              } else if (!modoSeleccion || bloqueado || doc.facturado) {
+                navigate('/documento', { state: { documento: doc } })
+              }
+            }}
             className={`bg-white rounded-2xl p-4 border cursor-pointer transition-colors ${
+              bloqueado ? 'opacity-30' :
               seleccionados.find(d => d.id === doc.id)
                 ? 'border-brand bg-orange-50'
                 : 'border-gray-100 hover:border-brand'
@@ -269,7 +282,7 @@ export default function DocumentosPage() {
               </div>
             </div>
           </div>
-        ))}
+        )})}
 
         {modoSeleccion && seleccionados.length > 0 && (
           <button
