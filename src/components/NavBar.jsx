@@ -13,19 +13,39 @@ export default function NavBar() {
   const location = useLocation()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 flex z-50">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex"
+      style={{
+        background: 'rgba(10, 10, 15, 0.95)',
+        borderTop: '1px solid rgba(0, 245, 255, 0.2)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 -4px 20px rgba(0, 245, 255, 0.05)',
+      }}
+    >
       {TABS.map(({ path, label, icono: Icono }) => {
         const activo = location.pathname === path
         return (
           <button
             key={path}
             onClick={() => navigate(path)}
-            className="flex-1 flex flex-col items-center gap-1 py-3"
+            className="flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-200"
           >
-            <Icono size={22} className={activo ? 'text-brand' : 'text-gray-400'} />
-            <span className={`text-xs font-medium ${activo ? 'text-brand' : 'text-gray-400'}`}>
+            <Icono
+              size={22}
+              className={activo ? 'text-neon-cyan' : 'text-gray-600'}
+              style={activo ? { filter: 'drop-shadow(0 0 6px #00f5ff)' } : {}}
+            />
+            <span
+              className={`text-xs font-mono ${activo ? 'text-neon-cyan' : 'text-gray-600'}`}
+              style={activo ? { textShadow: '0 0 8px #00f5ff' } : {}}
+            >
               {label}
             </span>
+            {activo && (
+              <div
+                className="absolute bottom-0 w-8 h-0.5 rounded-full"
+                style={{ background: '#00f5ff', boxShadow: '0 0 8px #00f5ff' }}
+              />
+            )}
           </button>
         )
       })}
