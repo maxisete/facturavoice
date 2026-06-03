@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, Download, Plus, X } from 'lucide-react'
+import { ChevronLeft, Download, Plus, X, Zap } from 'lucide-react'
 import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document'
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
@@ -20,35 +20,24 @@ export default function DocumentPage() {
   } : null)
   const [generando, setGenerando] = useState(false)
   const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
-  const soloLectura = doc.tipo === 'factura' || (doc.tipo === 'albaran' && doc.facturado)
+  const soloLectura = doc?.tipo === 'factura' || (doc?.tipo === 'albaran' && doc?.facturado)
 
-  useEffect(() => {
-    if (!doc) navigate('/')
-  }, [])
-
+  useEffect(() => { if (!doc) navigate('/') }, [])
   if (!doc) return null
 
   useEffect(() => {
-  if (!doc) return
-  const guardarEnSupabase = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { error } = await supabase.from('documentos').upsert({
-      id: doc.id,
-      user_id: user.id,
-      tipo: doc.tipo,
-      numero: doc.numero,
-      cliente: doc.cliente,
-      lineas: doc.lineas,
-      totales: doc.totales,
-      fecha: doc.fecha,
-      notas: doc.notas || null,
-    })
-    if (error) console.error('Error guardando documento:', error)
-    else console.log('Documento guardado OK:', doc.numero)
-  }
-  guardarEnSupabase()
-}, [doc?.id])
+    if (!doc) return
+    const guardarEnSupabase = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      await supabase.from('documentos').upsert({
+        id: doc.id, user_id: user.id, tipo: doc.tipo, numero: doc.numero,
+        cliente: doc.cliente, lineas: doc.lineas, totales: doc.totales,
+        fecha: doc.fecha, notas: doc.notas || null,
+      })
+    }
+    guardarEnSupabase()
+  }, [doc?.id])
 
   const handleDescargarPDF = async () => {
     setGenerando(true)
@@ -73,9 +62,7 @@ export default function DocumentPage() {
   const tipoLabel = doc.tipo === 'factura' ? 'Factura' : doc.tipo === 'presupuesto' ? 'Presupuesto' : 'Albarán'
 
   const actualizarLinea = (i, campo, valor) => {
-    const nuevasLineas = doc.lineas.map((l, idx) =>
-      idx === i ? { ...l, [campo]: valor } : l
-    )
+    const nuevasLineas = doc.lineas.map((l, idx) => idx === i ? { ...l, [campo]: valor } : l)
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
   }
 
@@ -92,109 +79,96 @@ export default function DocumentPage() {
   const handleConvertirAFactura = () => {
     const numero = getSiguienteNumero('factura')
     incrementarContador('factura')
-    const factura = {
-      ...doc,
-      id: crypto.randomUUID(),
-      tipo: 'factura',
-      numero,
-      fecha: new Date().toISOString(),
-    }
+    const factura = { ...doc, id: crypto.randomUUID(), tipo: 'factura', numero, fecha: new Date().toISOString() }
     navigate('/')
     setTimeout(() => navigate('/documento', { state: { documento: factura } }), 150)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-void">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 px-5 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-gray-400">
+      <header className="px-5 py-3 flex items-center gap-3"
+        style={{ borderBottom: '1px solid rgba(0,245,255,0.15)', background: 'rgba(10,10,15,0.98)' }}
+      >
+        <button onClick={() => navigate(-1)} className="text-neon-cyan">
           <ChevronLeft size={22} />
         </button>
         <div className="flex-1">
-          <p className="text-xs text-gray-400">{tipoLabel}</p>
-          <p className="font-bold text-gray-900">{doc.numero}</p>
+          <p className="text-xs font-mono text-gray-600">{tipoLabel.toUpperCase()}</p>
+          <p className="font-orbitron font-bold text-white">{doc.numero}</p>
         </div>
         <button
           onClick={handleDescargarPDF}
           disabled={generando}
-          className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50"
+          className="flex items-center gap-2 btn-neon-solid text-white px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest disabled:opacity-50"
         >
-          <Download size={15} />
-          {generando ? 'Generando…' : 'PDF'}
+          <Download size={14} />
+          {generando ? 'GENERANDO...' : 'PDF'}
         </button>
       </header>
 
       <div className="px-5 py-5 space-y-4 max-w-lg mx-auto">
+
         {/* Cliente */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Cliente</p>
-          <p className="font-medium text-gray-900">{doc.cliente?.nombre}</p>
+        <div className="card-dark rounded-xl p-4">
+          <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest mb-1">// CLIENTE</p>
+          <p className="font-mono font-medium text-white">{doc.cliente?.nombre}</p>
         </div>
 
         {/* Líneas */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <p className="text-xs text-gray-400 uppercase tracking-wide">Líneas</p>
+        <div className="card-dark rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3"
+            style={{ borderBottom: '1px solid rgba(0,245,255,0.1)' }}
+          >
+            <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// LÍNEAS</p>
+            {!soloLectura && (
+              <button onClick={añadirLinea} className="flex items-center gap-1 text-xs font-mono text-neon-cyan">
+                <Plus size={12} />
+                AÑADIR
+              </button>
+            )}
           </div>
 
           {doc.lineas.map((linea, i) => (
-            <div key={i} className="p-4 border-b border-gray-50 space-y-2">
+            <div key={i} className="p-4 space-y-2" style={{ borderBottom: '1px solid rgba(0,245,255,0.05)' }}>
               <div className="flex items-start justify-between gap-2">
                 <input
                   value={linea.description}
                   onChange={e => !soloLectura && actualizarLinea(i, 'description', e.target.value)}
                   placeholder="Descripción"
                   readOnly={soloLectura}
-                  className="flex-1 font-medium text-gray-900 bg-transparent focus:outline-none"
+                  className="flex-1 font-mono text-white bg-transparent focus:outline-none placeholder-gray-700"
                 />
                 {!soloLectura && (
-                  <button onClick={() => eliminarLinea(i)} className="text-red-300 hover:text-red-400">
+                  <button onClick={() => eliminarLinea(i)} className="text-gray-600 hover:text-red-400 transition-colors">
                     <X size={16} />
                   </button>
                 )}
               </div>
-
-              {!soloLectura && (
-              <button onClick={añadirLinea} className="flex items-center gap-1 text-brand text-sm font-medium">
-                <Plus size={14} /> Añadir
-              </button>
-            )}
-
-              <div className="flex gap-3 text-sm">
-                {false && (
-                  <div>
-                    <p className="text-xs text-gray-400">IVA %</p>
-                    <input
-                      type="number"
-                      value={linea.vat_rate}
-                      onChange={e => actualizarLinea(i, 'vat_rate', parseFloat(e.target.value) || 21)}
-                      className="w-12 text-gray-900 bg-transparent focus:outline-none font-mono"
-                    />
-                  </div>
-                )}
+              <div className="flex gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-400">Cant.</p>
+                  <p className="text-xs font-mono text-gray-600">Cant.</p>
                   <input
                     type="number"
                     value={linea.quantity}
                     onChange={e => !soloLectura && actualizarLinea(i, 'quantity', parseFloat(e.target.value) || 0)}
                     readOnly={soloLectura}
-                    className="w-14 text-gray-900 bg-transparent focus:outline-none font-mono"
+                    className="w-14 text-white bg-transparent focus:outline-none font-mono"
                   />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Precio</p>
+                  <p className="text-xs font-mono text-gray-600">Precio</p>
                   <input
                     type="number"
                     value={linea.unit_price}
                     onChange={e => !soloLectura && actualizarLinea(i, 'unit_price', parseFloat(e.target.value) || 0)}
                     readOnly={soloLectura}
-                    className="w-20 text-gray-900 bg-transparent focus:outline-none font-mono"
+                    className="w-24 text-white bg-transparent focus:outline-none font-mono"
                   />
                 </div>
                 <div className="ml-auto text-right">
-                  <p className="text-xs text-gray-400">Total</p>
-                  <p className="font-mono font-medium text-gray-900">
+                  <p className="text-xs font-mono text-gray-600">Total</p>
+                  <p className="font-orbitron font-bold text-neon-orange text-sm">
                     {formatearEuros(linea.quantity * linea.unit_price)}
                   </p>
                 </div>
@@ -203,25 +177,29 @@ export default function DocumentPage() {
           ))}
 
           {doc.lineas.length === 0 && (
-            <p className="text-center text-gray-300 text-sm py-6">Sin líneas</p>
+            <p className="text-center text-gray-700 text-sm font-mono py-6">// Sin líneas</p>
           )}
         </div>
 
         {/* Totales */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-2">
-          <div className="flex justify-between text-sm text-gray-500">
+        <div className="card-dark rounded-xl p-4 space-y-2">
+          <div className="flex justify-between text-sm font-mono text-gray-600">
             <span>Base imponible</span>
-            <span className="font-mono">{formatearEuros(doc.totales.subtotal)}</span>
+            <span>{formatearEuros(doc.totales.subtotal)}</span>
           </div>
           {(doc.totales.desgloseIva || []).map(v => (
-            <div key={v.tipo} className="flex justify-between text-sm text-gray-500">
+            <div key={v.tipo} className="flex justify-between text-sm font-mono text-gray-600">
               <span>IVA {v.tipo}%</span>
-              <span className="font-mono">{formatearEuros(v.cuota)}</span>
+              <span>{formatearEuros(v.cuota)}</span>
             </div>
           ))}
-          <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-100">
-            <span>Total</span>
-            <span className="font-mono text-brand">{formatearEuros(doc.totales.total)}</span>
+          <div className="flex justify-between font-orbitron font-bold pt-2"
+            style={{ borderTop: '1px solid rgba(0,245,255,0.1)' }}
+          >
+            <span className="text-white">TOTAL</span>
+            <span className="text-neon-orange" style={{ textShadow: '0 0 10px #FF5C39' }}>
+              {formatearEuros(doc.totales.total)}
+            </span>
           </div>
         </div>
 
@@ -229,29 +207,29 @@ export default function DocumentPage() {
         {doc.tipo === 'presupuesto' && (
           <button
             onClick={handleConvertirAFactura}
-            className="w-full flex items-center justify-center gap-2 border-2 border-gray-900 text-gray-900 py-3 rounded-2xl font-medium text-sm hover:bg-gray-900 hover:text-white transition-colors"
+            className="w-full flex items-center justify-center gap-2 btn-neon text-neon-cyan py-3 rounded-xl font-orbitron font-bold text-sm tracking-widest transition-all"
           >
-            Convertir a Factura
+            <Zap size={16} />
+            CONVERTIR A FACTURA
           </button>
         )}
-        
+
         {/* Notas */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100">
-          <p className="text-xs text-gray-400 mb-2 uppercase tracking-wide">Notas</p>
+        <div className="card-dark rounded-xl p-4">
+          <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest mb-2">// NOTAS</p>
           <textarea
             value={doc.notas || ''}
             onChange={e => !soloLectura && setDoc(prev => ({ ...prev, notas: e.target.value }))}
             placeholder="Condiciones, forma de pago…"
             readOnly={soloLectura}
             rows={3}
-            className="w-full text-sm text-gray-600 bg-transparent focus:outline-none resize-none"
+            className="w-full text-sm text-gray-400 font-mono bg-transparent focus:outline-none resize-none placeholder-gray-700"
           />
         </div>
       </div>
+
       {/* Preview oculto para el PDF */}
       <div id="documento-preview" style={{ position: 'absolute', left: '-9999px', top: 0, width: '794px' }}>
-
-        {/* CLÁSICA */}
         {plantillaPDF === 'clasica' && (
           <div className="bg-white p-8">
             <div className="flex justify-between items-start mb-8">
@@ -305,7 +283,6 @@ export default function DocumentPage() {
           </div>
         )}
 
-        {/* MINIMAL */}
         {plantillaPDF === 'minimal' && (
           <div className="bg-white p-12">
             <div className="mb-10">
@@ -356,7 +333,6 @@ export default function DocumentPage() {
           </div>
         )}
 
-        {/* MODERNA */}
         {plantillaPDF === 'moderna' && (
           <div className="bg-white">
             <div className="bg-gray-900 p-8 text-white">
@@ -412,7 +388,6 @@ export default function DocumentPage() {
           </div>
         )}
 
-        {/* EDITORIAL */}
         {plantillaPDF === 'editorial' && (
           <div className="bg-white p-8">
             <div className="border-l-4 border-brand pl-6 mb-8">
@@ -466,7 +441,6 @@ export default function DocumentPage() {
             {doc.notas && <p className="mt-6 text-sm text-gray-500 border-t border-gray-100 pt-4">{doc.notas}</p>}
           </div>
         )}
-
       </div>
     </div>
   )
