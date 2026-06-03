@@ -9,9 +9,15 @@ export default function LoginPage() {
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState(null)
   const [mensaje, setMensaje] = useState(null)
+  const [confirmar, setConfirmar] = useState('')
+  const [recuperando, setRecuperando] = useState(false)
 
   const handleSubmit = async () => {
     setError(null)
+    if (modo === 'registro' && password !== confirmar) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
     setMensaje(null)
     setCargando(true)
     try {
@@ -103,14 +109,28 @@ export default function LoginPage() {
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none transition-all placeholder-gray-700"
-              style={{
-                background: 'rgba(0,245,255,0.03)',
-                border: '1px solid rgba(0,245,255,0.15)',
-              }}
+              style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
               onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
               onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
             />
           </div>
+
+          {/* Confirmar contraseña — solo en registro */}
+          {modo === 'registro' && (
+            <div>
+              <p className="text-xs font-mono text-gray-600 mb-1">CONFIRMAR CONTRASEÑA</p>
+              <input
+                type="password"
+                value={confirmar}
+                onChange={e => setConfirmar(e.target.value)}
+                placeholder="••••••••"
+                className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none transition-all placeholder-gray-700"
+                style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
+              />
+            </div>
+          )}
 
           {/* Error */}
           {error && (
@@ -139,6 +159,26 @@ export default function LoginPage() {
             <Zap size={16} />
             {cargando ? 'CONECTANDO...' : modo === 'login' ? 'ENTRAR' : 'CREAR CUENTA'}
           </button>
+
+          {/* Recuperar contraseña */}
+          {modo === 'login' && (
+            <button
+              onClick={async () => {
+                if (!email) { setError('Introduce tu email primero.'); return }
+                setRecuperando(true)
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: 'https://facturavoice.vercel.app',
+                })
+                setRecuperando(false)
+                if (error) setError(error.message)
+                else setMensaje('Te hemos enviado un email para restablecer tu contraseña.')
+              }}
+              disabled={recuperando}
+              className="w-full text-center text-xs font-mono text-gray-600 hover:text-neon-cyan transition-colors py-1"
+            >
+              {recuperando ? 'ENVIANDO...' : '¿Olvidaste tu contraseña?'}
+            </button>
+          )}
         </div>
       </div>
     </div>
