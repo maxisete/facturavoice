@@ -12,6 +12,7 @@ import ComprasPage from './pages/ComprasPage'
 import DocumentosPage from './pages/DocumentosPage'
 import FacturaProveedorPage from './pages/FacturaProveedorPage'
 import NavBar from './components/NavBar'
+import PrivacidadPage from './pages/PrivacidadPage'
 
 const CON_NAVBAR = ['/', '/documentos', '/compras', '/ajustes']
 
@@ -74,6 +75,7 @@ export default function App() {
           <Route path="/documentos" element={session ? <DocumentosPage /> : <Navigate to="/login" />} />
           <Route path="/compras" element={session ? <ComprasPage /> : <Navigate to="/login" />} />
           <Route path="/factura-proveedor" element={session ? <FacturaProveedorPage /> : <Navigate to="/login" />} />
+          <Route path="/privacidad" element={<PrivacidadPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

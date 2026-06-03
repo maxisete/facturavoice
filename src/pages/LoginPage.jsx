@@ -182,7 +182,13 @@ export default function LoginPage() {
         </div>
 
         {/* Formulario de contacto */}
-        <div className="mt-6 card-dark rounded-2xl p-6 space-y-4">
+        <div className="mt-4 text-center">
+          <a href="/privacidad" className="text-xs font-mono text-gray-600 hover:text-neon-cyan transition-colors">
+            Política de Privacidad y Aviso Legal
+          </a>
+        </div>
+
+        <div className="mt-4 card-dark rounded-2xl p-6 space-y-4">
           <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// CONTACTO / SOPORTE</p>
 
           {!mensajeContacto ? (
