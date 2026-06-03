@@ -45,10 +45,10 @@ export default function ClientesPage({ onSeleccionar }) {
       try {
         setProcesando(true)
         const prompt = `Extrae los datos de un cliente de este texto y devuelve SOLO JSON sin markdown:\n{\n  "nombre": "nombre completo o razón social",\n  "nif": "DNI o CIF o null",\n  "telefono": "teléfono o null",\n  "email": "email o null",\n  "direccion": "dirección o null",\n  "ciudad": "ciudad o null"\n}\nTexto: "${texto}"`
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const response = await fetch('/api/groq', {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'llama-3.3-70b-versatile', temperature: 0.1, max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ temperature: 0.1, max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
         })
         const data = await response.json()
         const parsed = JSON.parse(data.choices[0].message.content)

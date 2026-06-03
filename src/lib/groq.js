@@ -1,14 +1,8 @@
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
-
 export async function parseDictation(texto, ivaDefecto = 21) {
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetch('/api/groq', {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${GROQ_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
       temperature: 0.1,
       max_tokens: 1000,
       messages: [
@@ -49,9 +43,7 @@ Formato de respuesta:
     })
   })
 
-  if (!response.ok) {
-    throw new Error('Error al conectar con la IA')
-  }
+  if (!response.ok) throw new Error('Error al conectar con la IA')
 
   const data = await response.json()
   const content = data.choices[0]?.message?.content
