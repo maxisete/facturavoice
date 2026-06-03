@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Upload, Camera, FileText, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { formatearEuros } from '../lib/document'
 
 export default function ComprasPage() {
   const [facturas, setFacturas] = useState([])
@@ -150,7 +151,7 @@ export default function ComprasPage() {
                 <p className="font-mono font-medium text-white">{f.nombre_proveedor}</p>
                 <p className="text-xs text-gray-600 mt-0.5">{f.numero_factura} · {f.fecha_factura}</p>
               </div>
-              <p className="font-orbitron font-bold text-neon-orange">{f.total?.toFixed(2)} €</p>
+              <p className="font-orbitron font-bold text-neon-orange">{formatearEuros(f.total)}</p>
             </div>
             {f.lineas?.length > 0 && (
               <p className="text-xs text-gray-600 mt-2 font-mono">

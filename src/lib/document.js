@@ -44,6 +44,11 @@ export function formatearFecha(fecha) {
   )
 }
 
+export function capitalizarPrimera(texto) {
+  if (!texto) return texto
+  return texto.charAt(0).toUpperCase() + texto.slice(1)
+}
+
 export function crearDocumentoVacio(tipo, cliente, numero) {
   const hoy = new Date()
   return {

@@ -47,7 +47,7 @@ export default function FacturaProveedorPage() {
           <p className="font-orbitron font-bold text-white text-sm">{factura.nombre_proveedor}</p>
           <p className="text-xs text-gray-600 font-mono">{factura.numero_factura} · {factura.fecha_factura}</p>
         </div>
-        <p className="font-orbitron font-bold text-neon-orange">{factura.total?.toFixed(2)} €</p>
+        <p className="font-orbitron font-bold text-neon-orange">{formatearEuros(factura.total)}</p>
       </header>
 
       <div className="px-5 py-5 space-y-4 max-w-lg mx-auto">

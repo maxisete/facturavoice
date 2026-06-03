@@ -31,7 +31,7 @@ Formato de respuesta:
   "lines": [
     {
       "reference": null,
-      "description": "string",
+      "description": "string con la primera letra en mayúscula",
       "quantity": 1,
       "unit_price": 0,
       "vat_rate": 21
@@ -57,7 +57,16 @@ Formato de respuesta:
   const content = data.choices[0]?.message?.content
 
   try {
-    return JSON.parse(content)
+    const resultado = JSON.parse(content)
+    if (resultado.lines) {
+      resultado.lines = resultado.lines.map(l => ({
+        ...l,
+        description: l.description
+          ? l.description.charAt(0).toUpperCase() + l.description.slice(1)
+          : l.description
+      }))
+    }
+    return resultado
   } catch {
     throw new Error('La IA no devolvió un formato válido')
   }
