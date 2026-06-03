@@ -1,6 +1,25 @@
+import { Redis } from '@upstash/redis'
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+})
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' })
+  }
+
+  // Rate limiting: 30 peticiones por IP cada 15 minutos
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown'
+  const key = `ratelimit:groq:${ip}`
+  const limite = 30
+  const ventana = 60 * 15
+
+  const contador = await redis.incr(key)
+  if (contador === 1) await redis.expire(key, ventana)
+  if (contador > limite) {
+    return res.status(429).json({ error: 'Demasiadas peticiones. Inténtalo en 15 minutos.' })
   }
 
   const { messages, temperature = 0.1, max_tokens = 1000 } = req.body
