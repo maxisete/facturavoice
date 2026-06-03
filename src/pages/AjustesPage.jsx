@@ -21,6 +21,11 @@ export default function AjustesPage() {
     contador_factura: negocio?.contador_factura || 1,
     contador_albaran: negocio?.contador_albaran || 1,
   })
+  const [contactoNombre, setContactoNombre] = useState('')
+  const [contactoEmail, setContactoEmail] = useState('')
+  const [contactoMensaje, setContactoMensaje] = useState('')
+  const [enviandoContacto, setEnviandoContacto] = useState(false)
+  const [mensajeContacto, setMensajeContacto] = useState(false)
 
   const handleGuardar = async () => {
     const año = new Date().getFullYear()
@@ -36,6 +41,22 @@ export default function AjustesPage() {
   }
 
   const handleCampo = (campo, valor) => setForm(prev => ({ ...prev, [campo]: valor }))
+
+  const handleContacto = async () => {
+    setEnviandoContacto(true)
+    try {
+      await fetch('/api/contacto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: contactoNombre, email: contactoEmail, mensaje: contactoMensaje })
+      })
+      setMensajeContacto(true)
+    } catch {
+      // silencioso
+    } finally {
+      setEnviandoContacto(false)
+    }
+  }
 
   const camposNegocio = [
     { campo: 'nombre_usuario', label: 'Tu nombre', tipo: 'text', placeholder: 'Maxi, Emilio, Juan Luis…' },
@@ -97,7 +118,6 @@ export default function AjustesPage() {
           <p className="px-4 pt-4 pb-2 text-xs font-orbitron text-neon-cyan/50 tracking-widest">
             // PREFERENCIAS
           </p>
-
           {[
             { campo: 'iva_defecto', label: 'IVA por defecto (%)', tipo: 'number', parser: v => parseFloat(v) || 21 },
             { campo: 'contador_presupuesto', label: 'Próximo nº de presupuesto', tipo: 'number', parser: v => parseInt(v) || 1 },
@@ -114,7 +134,6 @@ export default function AjustesPage() {
               />
             </div>
           ))}
-
           <div className="px-4 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
             <div>
               <p className="text-xs font-mono text-gray-600 mb-1">Color de marca</p>
@@ -127,7 +146,6 @@ export default function AjustesPage() {
               className="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent"
             />
           </div>
-
           <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
             <p className="text-xs font-mono text-gray-600 mb-3">Plantilla de PDF</p>
             <div className="grid grid-cols-2 gap-2">
@@ -148,6 +166,43 @@ export default function AjustesPage() {
             </div>
           </div>
         </div>
+
+        {/* Formulario de contacto */}
+        <div className="card-dark rounded-xl p-6 space-y-4">
+          <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// CONTACTO / SOPORTE</p>
+          {!mensajeContacto ? (
+            <div className="space-y-3">
+              <input type="text" value={contactoNombre} onChange={e => setContactoNombre(e.target.value)} placeholder="Tu nombre"
+                className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none transition-all placeholder-gray-700"
+                style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
+              />
+              <input type="email" value={contactoEmail} onChange={e => setContactoEmail(e.target.value)} placeholder="Tu email"
+                className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none transition-all placeholder-gray-700"
+                style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
+              />
+              <textarea value={contactoMensaje} onChange={e => setContactoMensaje(e.target.value)} placeholder="¿En qué podemos ayudarte?" rows={3}
+                className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none transition-all placeholder-gray-700 resize-none"
+                style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
+                onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
+              />
+              <button onClick={handleContacto} disabled={enviandoContacto || !contactoNombre || !contactoEmail || !contactoMensaje}
+                className="w-full py-3 rounded-xl btn-neon text-neon-cyan font-orbitron text-xs tracking-widest disabled:opacity-40 transition-all"
+              >
+                {enviandoContacto ? 'ENVIANDO...' : 'ENVIAR MENSAJE'}
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm font-mono text-center py-2" style={{ color: '#00ff88' }}>
+              ✓ Mensaje enviado. Te responderemos pronto.
+            </p>
+          )}
+        </div>
+
       </div>
     </div>
   )
