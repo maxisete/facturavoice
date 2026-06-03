@@ -16,7 +16,10 @@ export default function HomePage() {
   const [tipo, setTipo] = useState('presupuesto')
   const [recientes, setRecientes] = useState([])
   const { negocio } = useAppStore()
-  const nombreUsuario = negocio?.nombre_usuario || ''
+  const [nombreUsuario, setNombreUsuario] = useState('')
+  useEffect(() => {
+    if (negocio?.nombre_usuario) setNombreUsuario(negocio.nombre_usuario)
+  }, [negocio])
 
   useEffect(() => {
     const cargarRecientes = async () => {
@@ -34,7 +37,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50 px-5 pt-12 pb-8">
       <div className="flex items-center justify-between mb-1">
         <h1 className="text-2xl font-bold text-gray-900">
-          Hola{nombreUsuario ? `, ${nombreUsuario}` : ''} 👋
+          Hola {nombreUsuario || ''} 👋
         </h1>
       </div>
       <p className="text-gray-500 mb-8">¿Qué necesitas hoy?</p>
