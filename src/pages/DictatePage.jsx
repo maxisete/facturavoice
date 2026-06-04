@@ -12,26 +12,24 @@ export default function DictatePage() {
   const location = useLocation()
   const tipo = location.state?.tipo || 'presupuesto'
   const lineasImportadas = location.state?.lineasImportadas || null
-
   const { getSiguienteNumero, incrementarContador } = useAppStore()
   const { grabando, transcripcion, transcripcionRef, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
-
   const [procesando, setProcesando] = useState(false)
   const [pasoActual, setPasoActual] = useState('')
   const [errorProceso, setErrorProceso] = useState(null)
   const [cliente, setCliente] = useState(null)
   const [mostrarClientes, setMostrarClientes] = useState(false)
-
   const handleBotonMic = async () => {
     if (grabando) {
       await detenerGrabacion()
+      const texto = transcripcionRef.current.trim()
+      alert('ANTES DE PROCESAR: [' + texto + '] longitud: ' + texto.length)
       await procesarTranscripcion()
     } else {
       setErrorProceso(null)
       iniciarGrabacion()
     }
   }
-
   const procesarTranscripcion = async () => {
     const texto = transcripcionRef.current.trim()
     if (!texto && !lineasImportadas) {
@@ -67,14 +65,11 @@ export default function DictatePage() {
       setPasoActual('')
     }
   }
-
   const tipoLabel = tipo.toUpperCase()
   const barras = [0, 1, 2, 3, 4, 5, 6]
-
   if (mostrarClientes) {
     return <ClientesPage onSeleccionar={(c) => { setCliente(c); setMostrarClientes(false) }} />
   }
-
   return (
     <div className="min-h-screen bg-void flex flex-col"
       style={{
@@ -105,7 +100,6 @@ export default function DictatePage() {
           <span className="text-xs font-mono text-neon-cyan">CAMBIAR</span>
         </button>
       </div>
-
       {/* Zona principal */}
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-8">
 
