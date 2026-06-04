@@ -88,7 +88,7 @@ export function useVoice() {
     recognition.start()
     recognitionRef.current = recognition
     setGrabando(true)
-    iniciarAnalisisAudio()
+    // iniciarAnalisisAudio() — deshabilitado en móvil por conflicto de streams
 
     timerRef.current = setInterval(() => {
       setDuracion(d => d + 1)
@@ -106,7 +106,7 @@ export function useVoice() {
         resolve(transcripcionRef.current)
       }
       clearInterval(timerRef.current)
-      detenerAnalisisAudio()
+      // detenerAnalisisAudio()
       setGrabando(false)
     })
   }, [])
