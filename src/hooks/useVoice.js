@@ -58,20 +58,25 @@ export function useVoice() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
     recognition.lang = 'es-ES'
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.interimResults = true
 
     recognition.onresult = (event) => {
-      let texto = ''
+      let textoFinal = ''
+      let textoInterino = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
-          texto += event.results[i][0].transcript
+          textoFinal += event.results[i][0].transcript
+        } else {
+          textoInterino += event.results[i][0].transcript
         }
       }
-      if (texto) {
-        setTranscripcion(prev => prev + ' ' + texto)
-        transcripcionRef.current = transcripcionRef.current + ' ' + texto
-      }  
+      if (textoFinal) {
+        transcripcionRef.current = transcripcionRef.current + ' ' + textoFinal
+        setTranscripcion(transcripcionRef.current)
+      } else if (textoInterino) {
+        setTranscripcion(transcripcionRef.current + ' ' + textoInterino)
+      }
     }
 
     recognition.onerror = (event) => {
