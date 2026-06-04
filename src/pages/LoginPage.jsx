@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Zap } from 'lucide-react'
 
-export default function LoginPage({ mfaPendiente }) {
+export default function LoginPage({ mfaRequerido }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [modo, setModo] = useState('login')
