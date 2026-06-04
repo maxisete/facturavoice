@@ -44,14 +44,7 @@ export default function App() {
       setSession(session)
       if (session) cargarDatos(session.user.id)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-        if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
-          setSession(null)
-          return
-        }
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
       if (session) cargarDatos(session.user.id)
     })

@@ -89,6 +89,7 @@ export default function LoginPage({ mfaPendiente }) {
           if (totp) {
             setMfaFactorId(totp.id)
             setMfaRequerido(true)
+            await supabase.auth.signOut()
             return
           }
         }
