@@ -200,13 +200,6 @@ export default function DictatePage() {
           </div>
         )}
 
-        {/* Transcripción en tiempo real */}
-        {grabando && transcripcion && (
-          <div className="w-full max-w-sm card-dark rounded-xl p-4">
-            <p className="text-sm text-gray-400 font-mono">{transcripcion}</p>
-          </div>
-        )}
-
         {/* Errores */}
         {(errorProceso || error) && (
           <div className="flex items-start gap-3 rounded-xl px-4 py-3 w-full max-w-sm"
