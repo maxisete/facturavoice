@@ -86,6 +86,11 @@ export function useVoice() {
       }
     }
 
+    recognition.onend = () => {
+      setGrabando(false)
+      clearInterval(timerRef.current)
+    }
+
     recognition.start()
     recognitionRef.current = recognition
     setGrabando(true)

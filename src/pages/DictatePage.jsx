@@ -22,8 +22,8 @@ export default function DictatePage() {
   const handleBotonMic = async () => {
     if (grabando) {
       await detenerGrabacion()
-      const texto = transcripcionRef.current.trim()
-      alert('ANTES DE PROCESAR: [' + texto + '] longitud: ' + texto.length)
+      await procesarTranscripcion()
+    } else if (transcripcionRef.current.trim()) {
       await procesarTranscripcion()
     } else {
       setErrorProceso(null)
