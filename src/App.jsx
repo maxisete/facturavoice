@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
+import { supabase, mfaState } from './lib/supabase'
 import { useAppStore } from './store/appStore'
 import HomePage from './pages/HomePage'
 import DictatePage from './pages/DictatePage'
@@ -45,6 +45,10 @@ export default function App() {
       if (session) cargarDatos(session.user.id)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mfaState.ignorarSiguienteEvento) {
+        mfaState.ignorarSiguienteEvento = false
+        return
+      }
       setSession(session)
       if (session) cargarDatos(session.user.id)
     })

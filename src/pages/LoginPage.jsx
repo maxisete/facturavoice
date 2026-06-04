@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { supabase, mfaState } from '../lib/supabase'
 import { Zap } from 'lucide-react'
 
 export default function LoginPage({ mfaPendiente }) {
@@ -89,6 +89,7 @@ export default function LoginPage({ mfaPendiente }) {
           if (totp) {
             setMfaFactorId(totp.id)
             setMfaRequerido(true)
+            mfaState.ignorarSiguienteEvento = true
             await supabase.auth.signOut()
             return
           }
