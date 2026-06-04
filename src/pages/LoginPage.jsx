@@ -129,6 +129,12 @@ export default function LoginPage({ mfaRequerido }) {
             >
               VERIFICAR
             </button>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); window.location.reload() }}
+              className="w-full text-center text-xs font-mono text-gray-600 hover:text-neon-cyan transition-colors py-1"
+            >
+              Volver al inicio de sesión
+            </button>
           </div>
         )}
         
