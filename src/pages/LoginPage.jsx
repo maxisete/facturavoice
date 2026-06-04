@@ -16,7 +16,22 @@ export default function LoginPage() {
   const [contactoMensaje, setContactoMensaje] = useState('')
   const [enviandoContacto, setEnviandoContacto] = useState(false)
   const [mensajeContacto, setMensajeContacto] = useState(false)
+  const [mfaRequerido, setMfaRequerido] = useState(false)
+  const [mfaCodigo, setMfaCodigo] = useState('')
+  const [mfaError, setMfaError] = useState(null)
+  const [mfaFactorId, setMfaFactorId] = useState(null)
 
+  const verificarMFA = async () => {
+    setMfaError(null)
+    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+    if (challengeError) { setMfaError('Error al crear el desafío'); return }
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: challengeData.id,
+      code: mfaCodigo
+    })
+    if (verifyError) { setMfaError('Código incorrecto, inténtalo de nuevo'); return }
+  }
   const handleContacto = async () => {
     setEnviandoContacto(true)
     try {
@@ -63,6 +78,16 @@ export default function LoginPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        if (aalData.nextLevel === 'aal2' && aalData.nextLevel !== aalData.currentLevel) {
+          const { data: factorsData } = await supabase.auth.mfa.listFactors()
+          const totp = factorsData?.totp?.[0]
+          if (totp) {
+            setMfaFactorId(totp.id)
+            setMfaRequerido(true)
+            return
+          }
+        }
       }
     } catch (err) {
       setError(err.message)
@@ -91,6 +116,28 @@ export default function LoginPage() {
           <p className="text-gray-600 font-mono text-sm">// De la voz al PDF en segundos</p>
         </div>
 
+        {/* Card 2FA */}
+        {mfaRequerido && (
+          <div className="card-dark rounded-2xl p-6 space-y-4 mb-4">
+            <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// VERIFICACIÓN 2FA</p>
+            <p className="text-xs font-mono text-gray-400">Introduce el código de Google Authenticator:</p>
+            <input
+              type="number"
+              value={mfaCodigo}
+              onChange={e => setMfaCodigo(e.target.value)}
+              placeholder="Código de 6 dígitos"
+              className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none text-center tracking-widest"
+              style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+            />
+            {mfaError && <p className="text-xs font-mono text-red-400 text-center">{mfaError}</p>}
+            <button onClick={verificarMFA} disabled={mfaCodigo.length !== 6}
+              className="w-full py-3 rounded-xl btn-neon-solid text-white font-orbitron text-xs tracking-widest disabled:opacity-40"
+            >
+              VERIFICAR
+            </button>
+          </div>
+        )}
+        
         {/* Card login */}
         <div className="card-dark rounded-2xl p-6 space-y-4">
           <div className="flex rounded-xl p-1 gap-1"
