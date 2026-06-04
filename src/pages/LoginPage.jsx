@@ -79,6 +79,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        alert('current: ' + aalData.currentLevel + ' / next: ' + aalData.nextLevel)
         if (aalData.nextLevel === 'aal2' && aalData.nextLevel !== aalData.currentLevel) {
           const { data: factorsData } = await supabase.auth.mfa.listFactors()
           const totp = factorsData?.totp?.[0]
