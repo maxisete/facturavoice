@@ -48,6 +48,7 @@ export function useVoice() {
   const iniciarGrabacion = useCallback(() => {
     setError(null)
     setTranscripcion('')
+    transcripcionRef.current = ''
     setDuracion(0)
 
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
