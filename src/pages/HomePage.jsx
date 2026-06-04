@@ -43,7 +43,7 @@ export default function HomePage() {
           FACTURAVOICE // SYS_ONLINE
         </p>
         <h1 className="text-3xl font-orbitron font-bold text-white">
-          HOLA,{' '}
+          HOLA{' '}
           <span className="neon-cyan text-neon-cyan">
             {nombreUsuario.toUpperCase() || 'USUARIO'}
           </span>
