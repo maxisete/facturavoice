@@ -58,7 +58,7 @@ export function useVoice() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
     recognition.lang = 'es-ES'
-    recognition.continuous = true
+    recognition.continuous = false
     recognition.interimResults = true
 
     recognition.onresult = (event) => {
