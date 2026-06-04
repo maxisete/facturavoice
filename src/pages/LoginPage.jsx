@@ -121,7 +121,7 @@ export default function LoginPage({ mfaPendiente }) {
         </div>
 
         {/* Card 2FA */}
-        {mfaPendiente && (
+        {mfaRequerido && (
           <div className="card-dark rounded-2xl p-6 space-y-4 mb-4">
             <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// VERIFICACIÓN 2FA</p>
             <p className="text-xs font-mono text-gray-400">Introduce el código de Google Authenticator:</p>
