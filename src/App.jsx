@@ -39,23 +39,29 @@ export default function App() {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session) cargarDatos(session.user.id)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session) {
-        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-        if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
-          setMfaPendiente(true)
-          setSession(null)
-          return
-        }
-      }
+  const comprobarAAL = async (session) => {
+    if (!session) {
+      setMfaPendiente(false)
+      setSession(null)
+      return
+    }
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
+      setMfaPendiente(true)
+      setSession(null)
+    } else {
       setMfaPendiente(false)
       setSession(session)
-      if (session) cargarDatos(session.user.id)
+      cargarDatos(session.user.id)
+    }
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      comprobarAAL(session)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      comprobarAAL(session)
     })
     return () => subscription.unsubscribe()
   }, [])
