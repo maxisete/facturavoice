@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase, mfaState } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { Zap } from 'lucide-react'
 
 export default function LoginPage({ mfaPendiente }) {
@@ -16,10 +16,8 @@ export default function LoginPage({ mfaPendiente }) {
   const [contactoMensaje, setContactoMensaje] = useState('')
   const [enviandoContacto, setEnviandoContacto] = useState(false)
   const [mensajeContacto, setMensajeContacto] = useState(false)
-  const [mfaRequerido, setMfaRequerido] = useState(false)
   const [mfaCodigo, setMfaCodigo] = useState('')
   const [mfaError, setMfaError] = useState(null)
-  const [mfaFactorId, setMfaFactorId] = useState(null)
 
   const verificarMFA = async () => {
     setMfaError(null)
@@ -82,18 +80,6 @@ export default function LoginPage({ mfaPendiente }) {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-        if (aalData.nextLevel === 'aal2' && aalData.nextLevel !== aalData.currentLevel) {
-          const { data: factorsData } = await supabase.auth.mfa.listFactors()
-          const totp = factorsData?.totp?.[0]
-          if (totp) {
-            setMfaFactorId(totp.id)
-            setMfaRequerido(true)
-            mfaState.ignorarSiguienteEvento = true
-            await supabase.auth.signOut()
-            return
-          }
-        }
       }
     } catch (err) {
       setError(err.message)

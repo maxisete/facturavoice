@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { supabase, mfaState } from './lib/supabase'
+import { useEffect, useState, useRef } from 'react'
+import { supabase } from './lib/supabase'
 import { useAppStore } from './store/appStore'
 import HomePage from './pages/HomePage'
 import DictatePage from './pages/DictatePage'
@@ -32,25 +32,46 @@ function Layout({ session, children }) {
 export default function App() {
   const { darkMode } = useAppStore()
   const [session, setSession] = useState(undefined)
-  const [mfaPendiente, setMfaPendiente] = useState(false)
+  const [mfaRequerido, setMfaRequerido] = useState(false)
+  const ignorar = useRef(false)
   const { setNegocio, setClientes } = useAppStore()
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
 
+  const procesarSesion = async (session) => {
+    if (!session) {
+      if (!ignorar.current) {
+        setMfaRequerido(false)
+        setSession(null)
+      }
+      ignorar.current = false
+      return
+    }
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
+      ignorar.current = true
+      setMfaRequerido(true)
+      setSession(null)
+      await supabase.auth.signOut()
+      return
+    }
+    setMfaRequerido(false)
+    setSession(session)
+    cargarDatos(session.user.id)
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session) cargarDatos(session.user.id)
+      procesarSesion(session)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mfaState.ignorarSiguienteEvento) {
-        mfaState.ignorarSiguienteEvento = false
+      if (ignorar.current && !session) {
+        ignorar.current = false
         return
       }
-      setSession(session)
-      if (session) cargarDatos(session.user.id)
+      procesarSesion(session)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -59,19 +80,18 @@ export default function App() {
     const { data: negocio } = await supabase.from('negocios').select('*').eq('id', userId).single()
     if (negocio) setNegocio(negocio)
     else setNegocio(null)
-
     const { data: clientes } = await supabase.from('clientes').select('*').eq('user_id', userId)
     if (clientes) setClientes(clientes)
     else setClientes([])
   }
 
-  if (session === undefined) return null
+  if (session === undefined && !mfaRequerido) return null
 
   return (
     <BrowserRouter>
       <Layout session={session}>
         <Routes>
-          <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage mfaPendiente={mfaPendiente} />} />
+          <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage mfaRequerido={mfaRequerido} />} />
           <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
           <Route path="/dictar" element={session ? <DictatePage /> : <Navigate to="/login" />} />
           <Route path="/documento" element={session ? <DocumentPage /> : <Navigate to="/login" />} />
