@@ -143,6 +143,7 @@ export default function LoginPage({ mfaPendiente }) {
         )}
         
         {/* Card login */}
+        {!mfaRequerido && (
         <div className="card-dark rounded-2xl p-6 space-y-4">
           <div className="flex rounded-xl p-1 gap-1"
             style={{ background: 'rgba(0,245,255,0.05)', border: '1px solid rgba(0,245,255,0.1)' }}
@@ -231,6 +232,7 @@ export default function LoginPage({ mfaPendiente }) {
             </button>
           )}
         </div>
+        )}
 
         {/* Formulario de contacto */}
         <div className="mt-4 text-center">
