@@ -23,10 +23,14 @@ export default function LoginPage({ mfaPendiente }) {
 
   const verificarMFA = async () => {
     setMfaError(null)
-    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+    const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors()
+    if (factorsError) { setMfaError('Error al obtener factores'); return }
+    const totp = factorsData?.totp?.[0]
+    if (!totp) { setMfaError('No se encontró factor 2FA'); return }
+    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: totp.id })
     if (challengeError) { setMfaError('Error al crear el desafío'); return }
     const { error: verifyError } = await supabase.auth.mfa.verify({
-      factorId: mfaFactorId,
+      factorId: totp.id,
       challengeId: challengeData.id,
       code: mfaCodigo
     })
