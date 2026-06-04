@@ -33,6 +33,8 @@ export default function LoginPage({ mfaRequerido }) {
       code: mfaCodigo
     })
     if (verifyError) { setMfaError('Código incorrecto, inténtalo de nuevo'); return }
+    const { data: { session } } = await supabase.auth.refreshSession()
+    if (session) window.location.reload()
   }
   const handleContacto = async () => {
     setEnviandoContacto(true)
