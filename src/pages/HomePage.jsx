@@ -33,6 +33,26 @@ export default function HomePage() {
     }
     cargarRecientes()
   }, [])
+  useEffect(() => {
+    const comprobarPresupuestosPendientes = async () => {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return
+      const hace7dias = new Date()
+      hace7dias.setDate(hace7dias.getDate() - 7)
+      const { data } = await supabase
+        .from('documentos')
+        .select('id, numero, cliente, fecha')
+        .eq('tipo', 'presupuesto')
+        .eq('facturado', false)
+        .lt('fecha', hace7dias.toISOString())
+      if (data && data.length > 0) {
+        new Notification('FacturaVoice', {
+          body: `Tienes ${data.length} presupuesto${data.length > 1 ? 's' : ''} pendiente${data.length > 1 ? 's' : ''} de facturar desde hace más de 7 días.`,
+          icon: '/icon-192.png'
+        })
+      }
+    }
+    comprobarPresupuestosPendientes()
+  }, [])
 
   return (
     <div className="min-h-screen bg-void px-5 pt-12 pb-8">
