@@ -42,19 +42,16 @@ export default function App() {
 
   const procesarSesion = async (session) => {
     if (!session) {
-      if (!ignorar.current) {
-        setMfaRequerido(false)
-        setSession(null)
-      }
-      ignorar.current = false
+      setMfaRequerido(false)
+      setSession(null)
       return
     }
     const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
     if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
-      ignorar.current = true
+      // Sesión aal1 viva pero pendiente de 2FA: NO la tratamos como válida,
+      // pero tampoco cerramos sesión (verify la necesita)
       setMfaRequerido(true)
       setSession(null)
-      await supabase.auth.signOut()
       return
     }
     setMfaRequerido(false)
@@ -67,10 +64,6 @@ export default function App() {
       procesarSesion(session)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (ignorar.current && !session) {
-        ignorar.current = false
-        return
-      }
       procesarSesion(session)
     })
     return () => subscription.unsubscribe()
