@@ -32,6 +32,7 @@ function Layout({ session, children }) {
 export default function App() {
   const { darkMode } = useAppStore()
   const [session, setSession] = useState(undefined)
+  const [mfaPendiente, setMfaPendiente] = useState(false)
   const { setNegocio, setClientes } = useAppStore()
 
   useEffect(() => {
@@ -43,7 +44,16 @@ export default function App() {
       setSession(session)
       if (session) cargarDatos(session.user.id)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        if (aalData.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
+          setMfaPendiente(true)
+          setSession(null)
+          return
+        }
+      }
+      setMfaPendiente(false)
       setSession(session)
       if (session) cargarDatos(session.user.id)
     })
@@ -66,7 +76,7 @@ export default function App() {
     <BrowserRouter>
       <Layout session={session}>
         <Routes>
-          <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage />} />
+          <Route path="/login" element={session ? <Navigate to="/" /> : <LoginPage mfaPendiente={mfaPendiente} />} />
           <Route path="/" element={session ? <HomePage /> : <Navigate to="/login" />} />
           <Route path="/dictar" element={session ? <DictatePage /> : <Navigate to="/login" />} />
           <Route path="/documento" element={session ? <DocumentPage /> : <Navigate to="/login" />} />

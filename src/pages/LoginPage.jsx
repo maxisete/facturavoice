@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Zap } from 'lucide-react'
 
-export default function LoginPage() {
+export default function LoginPage({ mfaPendiente }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [modo, setModo] = useState('login')
@@ -79,7 +79,6 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-        alert('current: ' + aalData.currentLevel + ' / next: ' + aalData.nextLevel)
         if (aalData.nextLevel === 'aal2' && aalData.nextLevel !== aalData.currentLevel) {
           const { data: factorsData } = await supabase.auth.mfa.listFactors()
           const totp = factorsData?.totp?.[0]
@@ -118,7 +117,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card 2FA */}
-        {mfaRequerido && (
+        {mfaPendiente && (
           <div className="card-dark rounded-2xl p-6 space-y-4 mb-4">
             <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// VERIFICACIÓN 2FA</p>
             <p className="text-xs font-mono text-gray-400">Introduce el código de Google Authenticator:</p>
