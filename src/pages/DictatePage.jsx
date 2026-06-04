@@ -5,6 +5,7 @@ import { useVoice } from '../hooks/useVoice'
 import { parseDictation } from '../lib/groq'
 import { crearDocumentoVacio, calcularTotales } from '../lib/document'
 import { useAppStore } from '../store/appStore'
+import { registrarAccion } from '../lib/auditoria'
 import ClientesPage from './ClientesPage'
 
 export default function DictatePage() {
@@ -56,6 +57,7 @@ export default function DictatePage() {
       doc.condiciones_pago = resultado.payment_terms
       doc.notas = resultado.notes
       doc.totales = calcularTotales(doc.lineas)
+      await registrarAccion('crear_documento', { tipo, numero, cliente: clienteFinal.nombre })
       navigate('/documento', { state: { documento: doc } })
     } catch (err) {
       setErrorProceso('Hubo un problema al procesar el dictado. Inténtalo de nuevo.')
