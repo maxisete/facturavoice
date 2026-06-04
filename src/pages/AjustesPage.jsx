@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Save, LogOut, Shield, ShieldCheck } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
+import { registrarAccion } from '../lib/auditoria'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
@@ -80,7 +81,10 @@ export default function AjustesPage() {
       [`A-${año}`]: form.contador_albaran - 1,
     })
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) await supabase.from('negocios').upsert({ id: user.id, ...form })
+    if (user) {
+      await supabase.from('negocios').upsert({ id: user.id, ...form })
+      await registrarAccion('cambiar_ajustes', { nombre: form.nombre, email: form.email })
+    }
     navigate(-1)
   }
 
