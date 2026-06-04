@@ -6,15 +6,14 @@ export function useVoice() {
   const [error, setError] = useState(null)
   const [duracion, setDuracion] = useState(0)
   const [nivelAudio, setNivelAudio] = useState(0)
-
   const transcripcionRef = useRef('')
   const recognitionRef = useRef(null)
+  const estaGrabandoRef = useRef(false)
   const timerRef = useRef(null)
   const audioContextRef = useRef(null)
   const analyserRef = useRef(null)
   const animFrameRef = useRef(null)
   const streamRef = useRef(null)
-
   const iniciarAnalisisAudio = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -24,7 +23,6 @@ export function useVoice() {
       const source = audioContextRef.current.createMediaStreamSource(stream)
       source.connect(analyserRef.current)
       analyserRef.current.fftSize = 256
-
       const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
       const tick = () => {
         analyserRef.current?.getByteFrequencyData(dataArray)
@@ -87,13 +85,16 @@ export function useVoice() {
     }
 
     recognition.onend = () => {
-      setGrabando(false)
-      clearInterval(timerRef.current)
+      if (estaGrabandoRef.current) {
+        recognition.start()
+      }
     }
 
     recognition.start()
     recognitionRef.current = recognition
+    estaGrabandoRef.current = true
     setGrabando(true)
+
     // iniciarAnalisisAudio() — deshabilitado en móvil por conflicto de streams
 
     timerRef.current = setInterval(() => {
@@ -104,6 +105,7 @@ export function useVoice() {
   const detenerGrabacion = useCallback(() => {
     return new Promise((resolve) => {
       if (recognitionRef.current) {
+        estaGrabandoRef.current = false
         recognitionRef.current.onend = () => {
           resolve(transcripcionRef.current)
         }
