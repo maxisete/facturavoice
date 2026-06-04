@@ -24,8 +24,7 @@ export default function DictatePage() {
 
   const handleBotonMic = async () => {
     if (grabando) {
-      detenerGrabacion()
-      await esperar(3000)
+      await detenerGrabacion()
       await procesarTranscripcion()
     } else {
       setErrorProceso(null)

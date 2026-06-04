@@ -96,11 +96,19 @@ export function useVoice() {
   }, [])
 
   const detenerGrabacion = useCallback(() => {
-    recognitionRef.current?.stop()
-    clearInterval(timerRef.current)
-    detenerAnalisisAudio()
-    setGrabando(false)
-    return transcripcionRef.current
+    return new Promise((resolve) => {
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = () => {
+          resolve(transcripcionRef.current)
+        }
+        recognitionRef.current.stop()
+      } else {
+        resolve(transcripcionRef.current)
+      }
+      clearInterval(timerRef.current)
+      detenerAnalisisAudio()
+      setGrabando(false)
+    })
   }, [])
 
   const formatearDuracion = (segs) => {
