@@ -35,6 +35,7 @@ export default function DictatePage() {
 
   const procesarTranscripcion = async () => {
     const texto = transcripcionRef.current.trim()
+    alert('Transcripción capturada: [' + transcripcionRef.current + ']')
     if (!texto && !lineasImportadas) {
       setErrorProceso('No te oímos bien, prueba de nuevo.')
       return
