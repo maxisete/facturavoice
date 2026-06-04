@@ -213,6 +213,17 @@ export default function DictatePage() {
           </div>
         )}
 
+        {/* DEBUG TEMPORAL */}
+        <div className="w-full max-w-sm rounded-xl p-3 text-xs font-mono"
+          style={{ background: 'rgba(255,255,0,0.05)', border: '1px solid rgba(255,255,0,0.3)' }}
+        >
+          <p className="text-yellow-400 mb-1">── DEBUG ──</p>
+          <p className="text-gray-400">transcripcion: <span className="text-white">[{transcripcion || 'VACÍO'}]</span></p>
+          <p className="text-gray-400">transcripcionRef: <span className="text-white">[{transcripcionRef.current || 'VACÍO'}]</span></p>
+          <p className="text-gray-400">grabando: <span className="text-white">{grabando ? 'SÍ' : 'NO'}</span></p>
+          <p className="text-gray-400">error voz: <span className="text-red-400">{error || 'ninguno'}</span></p>
+        </div>
+        
         {/* Errores */}
         {(errorProceso || error) && (
           <div className="flex items-start gap-3 rounded-xl px-4 py-3 w-full max-w-sm"
