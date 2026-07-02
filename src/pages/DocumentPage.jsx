@@ -265,11 +265,11 @@ export default function DocumentPage() {
               <tbody>
                 {doc.lineas.map((l, i) => (
                   <tr key={i} className="border-b border-gray-100">
-                    <td className="p-3 text-sm">{l.description}</td>
-                    <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
-                    <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
-                    <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
-                    <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                    <td className="p-3 text-sm text-gray-900">{l.description}</td>
+                    <td className="p-3 text-sm text-right font-mono text-gray-900">{l.quantity}</td>
+                    <td className="p-3 text-sm text-right font-mono text-gray-900">{formatearEuros(l.unit_price)}</td>
+                    <td className="p-3 text-sm text-right text-gray-900">{l.vat_rate}%</td>
+                    <td className="p-3 text-sm text-right font-mono font-medium text-gray-900">{formatearEuros(l.quantity * l.unit_price)}</td>
                   </tr>
                 ))}
               </tbody>
