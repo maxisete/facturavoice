@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { ChevronLeft, Download, Plus, X, Zap } from 'lucide-react'
 import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document'
 import { useAppStore } from '../store/appStore'
+import { registrarAccion } from '../lib/auditoria'
 import { supabase } from '../lib/supabase'
 
 export default function DocumentPage() {
@@ -35,6 +36,7 @@ export default function DocumentPage() {
         cliente: doc.cliente, lineas: doc.lineas, totales: doc.totales,
         fecha: doc.fecha, notas: doc.notas || null,
       })
+      await registrarAccion('guardar_documento', { tipo: doc.tipo, numero: doc.numero, cliente: doc.cliente?.nombre })
     }
     guardarEnSupabase()
   }, [doc?.id])

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { registrarAccion } from '../lib/auditoria'
 import { Zap } from 'lucide-react'
 
-export default function LoginPage() {
+export default function LoginPage({ mfaRequerido }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [modo, setModo] = useState('login')
@@ -16,7 +17,26 @@ export default function LoginPage() {
   const [contactoMensaje, setContactoMensaje] = useState('')
   const [enviandoContacto, setEnviandoContacto] = useState(false)
   const [mensajeContacto, setMensajeContacto] = useState(false)
+  const [mfaCodigo, setMfaCodigo] = useState('')
+  const [mfaError, setMfaError] = useState(null)
 
+  const verificarMFA = async () => {
+    setMfaError(null)
+    const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors()
+    if (factorsError) { setMfaError('Error al obtener factores'); return }
+    const totp = factorsData?.totp?.[0]
+    if (!totp) { setMfaError('No se encontró factor 2FA'); return }
+    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: totp.id })
+    if (challengeError) { setMfaError('Error al crear el desafío'); return }
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: totp.id,
+      challengeId: challengeData.id,
+      code: mfaCodigo
+    })
+    if (verifyError) { setMfaError('Código incorrecto, inténtalo de nuevo'); return }
+    const { data: { session } } = await supabase.auth.refreshSession()
+    if (session) window.location.reload()
+  }
   const handleContacto = async () => {
     setEnviandoContacto(true)
     try {
@@ -57,8 +77,9 @@ export default function LoginPage() {
     setCargando(true)
     try {
       if (modo === 'registro') {
-        const { error } = await supabase.auth.signUp({ email, password })
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
+        await registrarAccion('login', { email })
         setMensaje('Cuenta creada. Revisa tu email para confirmarla.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -91,7 +112,36 @@ export default function LoginPage() {
           <p className="text-gray-600 font-mono text-sm">// De la voz al PDF en segundos</p>
         </div>
 
+        {/* Card 2FA */}
+        {mfaRequerido && (
+          <div className="card-dark rounded-2xl p-6 space-y-4 mb-4">
+            <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// VERIFICACIÓN 2FA</p>
+            <p className="text-xs font-mono text-gray-400">Introduce el código de Google Authenticator:</p>
+            <input
+              type="number"
+              value={mfaCodigo}
+              onChange={e => setMfaCodigo(e.target.value)}
+              placeholder="Código de 6 dígitos"
+              className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none text-center tracking-widest"
+              style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+            />
+            {mfaError && <p className="text-xs font-mono text-red-400 text-center">{mfaError}</p>}
+            <button onClick={verificarMFA} disabled={mfaCodigo.length !== 6}
+              className="w-full py-3 rounded-xl btn-neon-solid text-white font-orbitron text-xs tracking-widest disabled:opacity-40"
+            >
+              VERIFICAR
+            </button>
+            <button
+              onClick={async () => { await supabase.auth.signOut(); window.location.reload() }}
+              className="w-full text-center text-xs font-mono text-gray-600 hover:text-neon-cyan transition-colors py-1"
+            >
+              Volver al inicio de sesión
+            </button>
+          </div>
+        )}
+        
         {/* Card login */}
+        {!mfaRequerido && (
         <div className="card-dark rounded-2xl p-6 space-y-4">
           <div className="flex rounded-xl p-1 gap-1"
             style={{ background: 'rgba(0,245,255,0.05)', border: '1px solid rgba(0,245,255,0.1)' }}
@@ -180,6 +230,7 @@ export default function LoginPage() {
             </button>
           )}
         </div>
+        )}
 
         {/* Formulario de contacto */}
         <div className="mt-4 text-center">

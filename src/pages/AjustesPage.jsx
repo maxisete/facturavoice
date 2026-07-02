@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Save, LogOut } from 'lucide-react'
+import { ChevronLeft, Save, LogOut, Shield, ShieldCheck } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
+import { registrarAccion } from '../lib/auditoria'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
@@ -26,6 +27,50 @@ export default function AjustesPage() {
   const [contactoMensaje, setContactoMensaje] = useState('')
   const [enviandoContacto, setEnviandoContacto] = useState(false)
   const [mensajeContacto, setMensajeContacto] = useState(false)
+  const [mfaActivado, setMfaActivado] = useState(false)
+  const [mfaQR, setMfaQR] = useState(null)
+  const [mfaSecret, setMfaSecret] = useState(null)
+  const [mfaFactorId, setMfaFactorId] = useState(null)
+  const [mfaCodigo, setMfaCodigo] = useState('')
+  const [mfaError, setMfaError] = useState(null)
+  const [mfaPaso, setMfaPaso] = useState('idle') // idle | qr | verificando | activado
+
+  const comprobarMFA = async () => {
+    const { data } = await supabase.auth.mfa.listFactors()
+    const totp = data?.totp?.find(f => f.status === 'verified')
+    if (totp) { setMfaActivado(true); setMfaFactorId(totp.id) }
+  }
+
+  const activarMFA = async () => {
+    setMfaError(null)
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'FacturaVoice' })
+    if (error) { setMfaError('Error al generar el QR'); return }
+    setMfaQR(data.totp.qr_code)
+    setMfaSecret(data.totp.secret)
+    setMfaFactorId(data.id)
+    setMfaPaso('qr')
+  }
+
+  const verificarMFA = async () => {
+    setMfaError(null)
+    const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+    if (challengeError) { setMfaError('Error al crear el desafío'); return }
+    const { error: verifyError } = await supabase.auth.mfa.verify({
+      factorId: mfaFactorId,
+      challengeId: challengeData.id,
+      code: mfaCodigo
+    })
+    if (verifyError) { setMfaError('Código incorrecto, inténtalo de nuevo'); return }
+    setMfaActivado(true)
+    setMfaPaso('idle')
+  }
+
+  const desactivarMFA = async () => {
+    await supabase.auth.mfa.unenroll({ factorId: mfaFactorId })
+    setMfaActivado(false)
+    setMfaFactorId(null)
+    setMfaPaso('idle')
+  }
 
   const handleGuardar = async () => {
     const año = new Date().getFullYear()
@@ -36,7 +81,10 @@ export default function AjustesPage() {
       [`A-${año}`]: form.contador_albaran - 1,
     })
     const { data: { user } } = await supabase.auth.getUser()
-    if (user) await supabase.from('negocios').upsert({ id: user.id, ...form })
+    if (user) {
+      await supabase.from('negocios').upsert({ id: user.id, ...form })
+      await registrarAccion('cambiar_ajustes', { nombre: form.nombre, email: form.email })
+    }
     navigate(-1)
   }
 
@@ -58,6 +106,8 @@ export default function AjustesPage() {
     }
   }
 
+  useState(() => { comprobarMFA() }, [])
+  
   const camposNegocio = [
     { campo: 'nombre_usuario', label: 'Tu nombre', tipo: 'text', placeholder: 'Maxi, Emilio, Juan Luis…' },
     { campo: 'nombre', label: 'Nombre o razón social', tipo: 'text', placeholder: 'Pinturas García S.L.' },
@@ -167,6 +217,62 @@ export default function AjustesPage() {
           </div>
         </div>
 
+        {/* Sección 2FA */}
+        <div className="card-dark rounded-xl overflow-hidden">
+          <p className="px-4 pt-4 pb-2 text-xs font-orbitron text-neon-cyan/50 tracking-widest">
+            // SEGURIDAD — 2FA
+          </p>
+          <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
+            {mfaActivado ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck size={20} style={{ color: '#00ff88', filter: 'drop-shadow(0 0 6px #00ff88)' }} />
+                  <div>
+                    <p className="text-sm font-mono text-white">2FA activado</p>
+                    <p className="text-xs font-mono text-gray-600">Tu cuenta está protegida</p>
+                  </div>
+                </div>
+                <button onClick={desactivarMFA} className="text-xs font-mono text-neon-pink border border-neon-pink/30 px-3 py-1.5 rounded-lg">
+                  DESACTIVAR
+                </button>
+              </div>
+            ) : mfaPaso === 'idle' ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Shield size={20} className="text-gray-600" />
+                  <div>
+                    <p className="text-sm font-mono text-white">2FA desactivado</p>
+                    <p className="text-xs font-mono text-gray-600">Recomendamos activarlo</p>
+                  </div>
+                </div>
+                <button onClick={activarMFA} className="text-xs font-mono text-neon-cyan border border-neon-cyan/30 px-3 py-1.5 rounded-lg">
+                  ACTIVAR
+                </button>
+              </div>
+            ) : mfaPaso === 'qr' ? (
+              <div className="space-y-4">
+                <p className="text-xs font-mono text-gray-400">Escanea este QR con Google Authenticator:</p>
+                {mfaQR && <img src={mfaQR} alt="QR 2FA" className="w-40 h-40 mx-auto rounded-xl" />}
+                <p className="text-xs font-mono text-gray-600 text-center break-all">Clave: {mfaSecret}</p>
+                <input
+                  type="number"
+                  value={mfaCodigo}
+                  onChange={e => setMfaCodigo(e.target.value)}
+                  placeholder="Código de 6 dígitos"
+                  className="w-full text-sm text-white font-mono rounded-xl px-4 py-3 focus:outline-none text-center tracking-widest"
+                  style={{ background: 'rgba(0,245,255,0.03)', border: '1px solid rgba(0,245,255,0.15)' }}
+                />
+                {mfaError && <p className="text-xs font-mono text-red-400 text-center">{mfaError}</p>}
+                <button onClick={verificarMFA} disabled={mfaCodigo.length !== 6}
+                  className="w-full py-3 rounded-xl btn-neon text-neon-cyan font-orbitron text-xs tracking-widest disabled:opacity-40"
+                >
+                  VERIFICAR Y ACTIVAR
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+        
         {/* Formulario de contacto */}
         <div className="card-dark rounded-xl p-6 space-y-4">
           <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// CONTACTO / SOPORTE</p>

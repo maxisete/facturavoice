@@ -5,6 +5,7 @@ import { useVoice } from '../hooks/useVoice'
 import { parseDictation } from '../lib/groq'
 import { crearDocumentoVacio, calcularTotales } from '../lib/document'
 import { useAppStore } from '../store/appStore'
+import { registrarAccion } from '../lib/auditoria'
 import ClientesPage from './ClientesPage'
 
 export default function DictatePage() {
@@ -12,27 +13,24 @@ export default function DictatePage() {
   const location = useLocation()
   const tipo = location.state?.tipo || 'presupuesto'
   const lineasImportadas = location.state?.lineasImportadas || null
-
   const { getSiguienteNumero, incrementarContador } = useAppStore()
   const { grabando, transcripcion, transcripcionRef, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
-
   const [procesando, setProcesando] = useState(false)
   const [pasoActual, setPasoActual] = useState('')
   const [errorProceso, setErrorProceso] = useState(null)
   const [cliente, setCliente] = useState(null)
   const [mostrarClientes, setMostrarClientes] = useState(false)
-
   const handleBotonMic = async () => {
     if (grabando) {
-      detenerGrabacion()
-      await esperar(1500)
+      await detenerGrabacion()
+      await procesarTranscripcion()
+    } else if (transcripcionRef.current.trim()) {
       await procesarTranscripcion()
     } else {
       setErrorProceso(null)
       iniciarGrabacion()
     }
   }
-
   const procesarTranscripcion = async () => {
     const texto = transcripcionRef.current.trim()
     if (!texto && !lineasImportadas) {
@@ -59,6 +57,7 @@ export default function DictatePage() {
       doc.condiciones_pago = resultado.payment_terms
       doc.notas = resultado.notes
       doc.totales = calcularTotales(doc.lineas)
+      await registrarAccion('crear_documento', { tipo, numero, cliente: clienteFinal.nombre })
       navigate('/documento', { state: { documento: doc } })
     } catch (err) {
       setErrorProceso('Hubo un problema al procesar el dictado. Inténtalo de nuevo.')
@@ -68,14 +67,11 @@ export default function DictatePage() {
       setPasoActual('')
     }
   }
-
   const tipoLabel = tipo.toUpperCase()
   const barras = [0, 1, 2, 3, 4, 5, 6]
-
   if (mostrarClientes) {
     return <ClientesPage onSeleccionar={(c) => { setCliente(c); setMostrarClientes(false) }} />
   }
-
   return (
     <div className="min-h-screen bg-void flex flex-col"
       style={{
@@ -106,7 +102,6 @@ export default function DictatePage() {
           <span className="text-xs font-mono text-neon-cyan">CAMBIAR</span>
         </button>
       </div>
-
       {/* Zona principal */}
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-8">
 
@@ -202,13 +197,6 @@ export default function DictatePage() {
               ))}
             </div>
             <p className="text-neon-cyan font-orbitron text-xs tracking-widest">{pasoActual.toUpperCase()}</p>
-          </div>
-        )}
-
-        {/* Transcripción en tiempo real */}
-        {grabando && transcripcion && (
-          <div className="w-full max-w-sm card-dark rounded-xl p-4">
-            <p className="text-sm text-gray-400 font-mono">{transcripcion}</p>
           </div>
         )}
 

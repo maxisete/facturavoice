@@ -6,15 +6,14 @@ export function useVoice() {
   const [error, setError] = useState(null)
   const [duracion, setDuracion] = useState(0)
   const [nivelAudio, setNivelAudio] = useState(0)
-
   const transcripcionRef = useRef('')
   const recognitionRef = useRef(null)
+  const estaGrabandoRef = useRef(false)
   const timerRef = useRef(null)
   const audioContextRef = useRef(null)
   const analyserRef = useRef(null)
   const animFrameRef = useRef(null)
   const streamRef = useRef(null)
-
   const iniciarAnalisisAudio = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -24,7 +23,6 @@ export function useVoice() {
       const source = audioContextRef.current.createMediaStreamSource(stream)
       source.connect(analyserRef.current)
       analyserRef.current.fftSize = 256
-
       const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
       const tick = () => {
         analyserRef.current?.getByteFrequencyData(dataArray)
@@ -48,6 +46,7 @@ export function useVoice() {
   const iniciarGrabacion = useCallback(() => {
     setError(null)
     setTranscripcion('')
+    transcripcionRef.current = ''
     setDuracion(0)
 
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -62,16 +61,21 @@ export function useVoice() {
     recognition.interimResults = true
 
     recognition.onresult = (event) => {
-      let texto = ''
+      let textoFinal = ''
+      let textoInterino = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         if (event.results[i].isFinal) {
-          texto += event.results[i][0].transcript
+          textoFinal += event.results[i][0].transcript
+        } else {
+          textoInterino += event.results[i][0].transcript
         }
       }
-      if (texto) {
-        setTranscripcion(prev => prev + ' ' + texto)
-        transcripcionRef.current = transcripcionRef.current + ' ' + texto
-      }  
+      if (textoFinal) {
+        transcripcionRef.current = transcripcionRef.current + ' ' + textoFinal
+        setTranscripcion(transcripcionRef.current)
+      } else if (textoInterino) {
+        setTranscripcion(transcripcionRef.current + ' ' + textoInterino)
+      }
     }
 
     recognition.onerror = (event) => {
@@ -80,10 +84,18 @@ export function useVoice() {
       }
     }
 
+    recognition.onend = () => {
+      if (estaGrabandoRef.current) {
+        recognition.start()
+      }
+    }
+
     recognition.start()
     recognitionRef.current = recognition
+    estaGrabandoRef.current = true
     setGrabando(true)
-    iniciarAnalisisAudio()
+
+    // iniciarAnalisisAudio() — deshabilitado en móvil por conflicto de streams
 
     timerRef.current = setInterval(() => {
       setDuracion(d => d + 1)
@@ -91,11 +103,20 @@ export function useVoice() {
   }, [])
 
   const detenerGrabacion = useCallback(() => {
-    recognitionRef.current?.stop()
-    clearInterval(timerRef.current)
-    detenerAnalisisAudio()
-    setGrabando(false)
-    return transcripcionRef.current
+    return new Promise((resolve) => {
+      if (recognitionRef.current) {
+        estaGrabandoRef.current = false
+        recognitionRef.current.onend = () => {
+          resolve(transcripcionRef.current)
+        }
+        recognitionRef.current.stop()
+      } else {
+        resolve(transcripcionRef.current)
+      }
+      clearInterval(timerRef.current)
+      // detenerAnalisisAudio()
+      setGrabando(false)
+    })
   }, [])
 
   const formatearDuracion = (segs) => {
