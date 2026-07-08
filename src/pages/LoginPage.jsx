@@ -77,9 +77,9 @@ export default function LoginPage({ mfaRequerido }) {
     setCargando(true)
     try {
       if (modo === 'registro') {
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        await registrarAccion('login', { email })
+        await registrarAccion('registro', { email })
         setMensaje('Cuenta creada. Revisa tu email para confirmarla.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
