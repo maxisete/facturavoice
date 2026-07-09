@@ -25,29 +25,27 @@ export default async function handler(req, res) {
   const email = user.email
 
   try {
-    // 0. Registrar el borrado ANTES de tocar nada (por si algo falla a mitad)
     await supabaseAdmin.from('cuentas_eliminadas').insert({
       email,
       user_id: userId,
       motivo: 'Eliminación solicitada por el usuario desde Ajustes',
     })
 
-    // 1. Borrar documentos del usuario
-    await supabaseAdmin.from('documentos').delete().eq('user_id', userId)
+    const { error: err1 } = await supabaseAdmin.from('documentos').delete().eq('user_id', userId)
+    if (err1) console.error('Error borrando documentos:', err1)
 
-    // 2. Borrar facturas de proveedor
-    await supabaseAdmin.from('facturas_proveedor').delete().eq('user_id', userId)
+    const { error: err2 } = await supabaseAdmin.from('facturas_proveedor').delete().eq('user_id', userId)
+    if (err2) console.error('Error borrando facturas_proveedor:', err2)
 
-    // 3. Borrar clientes del usuario
-    await supabaseAdmin.from('clientes').delete().eq('user_id', userId)
+    const { error: err3 } = await supabaseAdmin.from('clientes').delete().eq('user_id', userId)
+    if (err3) console.error('Error borrando clientes:', err3)
 
-    // 4. Borrar datos de negocio
-    await supabaseAdmin.from('negocios').delete().eq('id', userId)
+    const { error: err4 } = await supabaseAdmin.from('negocios').delete().eq('id', userId)
+    if (err4) console.error('Error borrando negocios:', err4)
 
-    // 5. Borrar el log de auditoría del usuario (ya tenemos el registro mínimo en cuentas_eliminadas)
-    await supabaseAdmin.from('auditoria').delete().eq('user_id', userId)
+    const { error: err5 } = await supabaseAdmin.from('auditoria').delete().eq('user_id', userId)
+    if (err5) console.error('Error borrando auditoria:', err5)
 
-    // 6. Borrar el usuario de Auth (esto invalida su sesión y credenciales)
     const { error: errDelete } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (errDelete) throw errDelete
 
