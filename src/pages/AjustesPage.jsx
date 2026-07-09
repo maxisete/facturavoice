@@ -4,6 +4,8 @@ import { ChevronLeft, Save, LogOut, Shield, ShieldCheck } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
 import { registrarAccion } from '../lib/auditoria'
+import { Trash2 } from 'lucide-react'
+import ModalEliminarCuenta from '../components/ModalEliminarCuenta'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
@@ -34,6 +36,7 @@ export default function AjustesPage() {
   const [mfaCodigo, setMfaCodigo] = useState('')
   const [mfaError, setMfaError] = useState(null)
   const [mfaPaso, setMfaPaso] = useState('idle') // idle | qr | verificando | activado
+  const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false)
 
   const comprobarMFA = async () => {
     const { data } = await supabase.auth.mfa.listFactors()
@@ -144,24 +147,17 @@ export default function AjustesPage() {
 
       <div className="px-5 py-5 space-y-4 max-w-lg mx-auto">
 
-        {/* Sección negocio */}
-        <div className="card-dark rounded-xl overflow-hidden">
-          <p className="px-4 pt-4 pb-2 text-xs font-orbitron text-neon-cyan/50 tracking-widest">
-            // TU NEGOCIO
-          </p>
-          {camposNegocio.map(({ campo, label, tipo, placeholder }) => (
-            <div key={campo} className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
-              <p className="text-xs font-mono text-gray-600 mb-1">{label}</p>
-              <input
-                type={tipo}
-                value={form[campo]}
-                onChange={e => handleCampo(campo, e.target.value)}
-                placeholder={placeholder}
-                className="w-full text-sm text-white bg-transparent focus:outline-none font-mono placeholder-gray-700"
-              />
-            </div>
-          ))}
-        </div>
+        {/* Acceso a Empresa */}
+        <button
+          onClick={() => navigate('/empresa')}
+          className="w-full card-dark rounded-xl p-4 flex items-center justify-between hover:border-neon-cyan/30 transition-colors"
+        >
+          <div className="text-left">
+            <p className="text-sm font-mono text-white">Datos de tu empresa</p>
+            <p className="text-xs font-mono text-gray-600">Nombre, NIF, dirección, contacto</p>
+          </div>
+          <ChevronLeft size={18} className="text-neon-cyan rotate-180" />
+        </button>
 
         {/* Sección preferencias */}
         <div className="card-dark rounded-xl overflow-hidden">
@@ -308,6 +304,22 @@ export default function AjustesPage() {
             </p>
           )}
         </div>
+        
+        {/* Zona de peligro */}
+        <div className="card-dark rounded-xl p-4" style={{ border: '1px solid rgba(255,50,50,0.2)' }}>
+          <p className="text-xs font-orbitron text-red-400/60 tracking-widest mb-3">// ZONA DE PELIGRO</p>
+          <button
+            onClick={() => setMostrarModalEliminar(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/30 text-red-400 font-orbitron text-xs tracking-widest"
+          >
+            <Trash2 size={14} />
+            ELIMINAR CUENTA
+          </button>
+        </div>
+
+        {mostrarModalEliminar && (
+          <ModalEliminarCuenta onClose={() => setMostrarModalEliminar(false)} mfaActivo={mfaActivado} />
+        )}
 
       </div>
     </div>

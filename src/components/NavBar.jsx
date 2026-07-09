@@ -1,10 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Home, FileText, ShoppingBag, Settings } from 'lucide-react'
+import { Home, ShoppingCart, ShoppingBag, Users, Settings } from 'lucide-react'
 
 const TABS = [
   { path: '/', label: 'Inicio', icono: Home },
-  { path: '/documentos', label: 'Documentos', icono: FileText },
+  { path: '/documentos', label: 'Ventas', icono: ShoppingCart },
   { path: '/compras', label: 'Compras', icono: ShoppingBag },
+  { path: '/clientes', label: 'Clientes', icono: Users },
   { path: '/ajustes', label: 'Ajustes', icono: Settings },
 ]
 
@@ -30,12 +31,12 @@ export default function NavBar() {
             className="flex-1 flex flex-col items-center gap-1 py-3 transition-all duration-200"
           >
             <Icono
-              size={22}
+              size={20}
               className={activo ? 'text-neon-cyan' : 'text-gray-600'}
               style={activo ? { filter: 'drop-shadow(0 0 6px #00f5ff)' } : {}}
             />
             <span
-              className={`text-xs font-mono ${activo ? 'text-neon-cyan' : 'text-gray-600'}`}
+              className={`text-[10px] font-mono ${activo ? 'text-neon-cyan' : 'text-gray-600'}`}
               style={activo ? { textShadow: '0 0 8px #00f5ff' } : {}}
             >
               {label}

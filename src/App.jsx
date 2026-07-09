@@ -7,6 +7,7 @@ import DictatePage from './pages/DictatePage'
 import DocumentPage from './pages/DocumentPage'
 import AjustesPage from './pages/AjustesPage'
 import ClientesPage from './pages/ClientesPage'
+import EmpresaPage from './pages/EmpresaPage'
 import LoginPage from './pages/LoginPage'
 import ComprasPage from './pages/ComprasPage'
 import DocumentosPage from './pages/DocumentosPage'
@@ -14,7 +15,7 @@ import FacturaProveedorPage from './pages/FacturaProveedorPage'
 import NavBar from './components/NavBar'
 import PrivacidadPage from './pages/PrivacidadPage'
 
-const CON_NAVBAR = ['/', '/documentos', '/compras', '/ajustes']
+const CON_NAVBAR = ['/', '/documentos', '/compras', '/clientes', '/ajustes']
 
 function Layout({ session, children }) {
   const location = useLocation()
@@ -94,6 +95,7 @@ export default function App() {
           <Route path="/dictar" element={session ? <DictatePage /> : <Navigate to="/login" />} />
           <Route path="/documento" element={session ? <DocumentPage /> : <Navigate to="/login" />} />
           <Route path="/ajustes" element={session ? <AjustesPage /> : <Navigate to="/login" />} />
+          <Route path="/empresa" element={session ? <EmpresaPage /> : <Navigate to="/login" />} />
           <Route path="/clientes" element={session ? <ClientesPage /> : <Navigate to="/login" />} />
           <Route path="/documentos" element={session ? <DocumentosPage /> : <Navigate to="/login" />} />
           <Route path="/compras" element={session ? <ComprasPage /> : <Navigate to="/login" />} />
