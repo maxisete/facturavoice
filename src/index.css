@@ -247,4 +247,8 @@
       );
     background-color: #F7F5F0;
   }
+  [data-tema="clasica"] .text-neon-cyan\/50 {
+    color: #7a5c2e;
+    opacity: 0.75;
+  }
 }

@@ -41,13 +41,25 @@ export default function DocumentPage() {
     guardarEnSupabase()
   }, [doc?.id])
 
+  const esperarImagenes = (contenedor) => {
+    const imagenes = Array.from(contenedor.querySelectorAll('img'))
+    return Promise.all(imagenes.map(img => {
+      if (img.complete) return Promise.resolve()
+      return new Promise(resolve => {
+        img.onload = resolve
+        img.onerror = resolve
+      })
+    }))
+  }
+
   const handleDescargarPDF = async () => {
     setGenerando(true)
     try {
       const { default: jsPDF } = await import('jspdf')
       const { default: html2canvas } = await import('html2canvas')
       const elemento = document.getElementById('documento-preview')
-      const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: '#ffffff' })
+      await esperarImagenes(elemento)
+      const canvas = await html2canvas(elemento, { scale: 2, backgroundColor: '#ffffff', useCORS: true, letterRendering: true })
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const ancho = pdf.internal.pageSize.getWidth()
@@ -236,6 +248,9 @@ export default function DocumentPage() {
           <div className="bg-white p-8">
             <div className="flex justify-between items-start mb-8">
               <div>
+                {negocio?.logo_url && (
+                  <img src={negocio.logo_url} alt="Logo" className="h-14 mb-2 object-contain" crossOrigin="anonymous" />
+                )}
                 <h2 className="text-2xl font-bold text-gray-900">{negocio?.nombre || 'Mi Negocio'}</h2>
                 {negocio?.nif && <p className="text-sm text-gray-500">{negocio.nif}</p>}
                 {negocio?.direccion && <p className="text-sm text-gray-500">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
@@ -251,6 +266,10 @@ export default function DocumentPage() {
             <div className="mb-6">
               <p className="text-xs text-gray-400 uppercase mb-1">Cliente</p>
               <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+              {doc.cliente?.nif && <p className="text-sm text-gray-500">{doc.cliente.nif}</p>}
+              {doc.cliente?.direccion && <p className="text-sm text-gray-500">{doc.cliente.direccion}{doc.cliente?.ciudad ? `, ${doc.cliente.ciudad}` : ''}</p>}
+              {doc.cliente?.telefono && <p className="text-sm text-gray-500">{doc.cliente.telefono}</p>}
+              {doc.cliente?.email && <p className="text-sm text-gray-500">{doc.cliente.email}</p>}
             </div>
             <table className="w-full mb-6">
               <thead>
@@ -294,14 +313,23 @@ export default function DocumentPage() {
             </div>
             <div className="flex justify-between mb-10">
               <div>
+                {negocio?.logo_url && (
+                  <img src={negocio.logo_url} alt="Logo" className="h-10 mb-2 object-contain" crossOrigin="anonymous" />
+                )}
                 <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">De</p>
                 <p className="text-sm font-medium text-gray-900">{negocio?.nombre || 'Mi Negocio'}</p>
                 {negocio?.nif && <p className="text-xs text-gray-400">{negocio.nif}</p>}
+                {negocio?.direccion && <p className="text-xs text-gray-400">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
+                {negocio?.telefono && <p className="text-xs text-gray-400">{negocio.telefono}</p>}
                 {negocio?.email && <p className="text-xs text-gray-400">{negocio.email}</p>}
               </div>
               <div className="text-right">
                 <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Para</p>
                 <p className="text-sm font-medium text-gray-900">{doc.cliente?.nombre}</p>
+                {doc.cliente?.nif && <p className="text-xs text-gray-400">{doc.cliente.nif}</p>}
+                {doc.cliente?.direccion && <p className="text-xs text-gray-400">{doc.cliente.direccion}{doc.cliente?.ciudad ? `, ${doc.cliente.ciudad}` : ''}</p>}
+                {doc.cliente?.telefono && <p className="text-xs text-gray-400">{doc.cliente.telefono}</p>}
+                {doc.cliente?.email && <p className="text-xs text-gray-400">{doc.cliente.email}</p>}
               </div>
             </div>
             <table className="w-full mb-8">
@@ -340,8 +368,13 @@ export default function DocumentPage() {
             <div className="bg-gray-900 p-8 text-white">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-2xl font-bold">{negocio?.nombre || 'Mi Negocio'}</p>
+                  {negocio?.logo_url && (
+                    <img src={negocio.logo_url} alt="Logo" className="h-12 mb-3 object-contain" crossOrigin="anonymous" />
+                  )}
+                  <p className="text-2xl font-bold" style={{ color: '#ffffff' }}>{negocio?.nombre || 'Mi Negocio'}</p>
                   {negocio?.nif && <p className="text-gray-400 text-sm">{negocio.nif}</p>}
+                  {negocio?.direccion && <p className="text-gray-400 text-sm">{negocio.direccion}{negocio?.ciudad ? `, ${negocio.ciudad}` : ''}</p>}
+                  {negocio?.telefono && <p className="text-gray-400 text-sm">{negocio.telefono}</p>}
                   {negocio?.email && <p className="text-gray-400 text-sm">{negocio.email}</p>}
                 </div>
                 <div className="text-right">
@@ -355,6 +388,10 @@ export default function DocumentPage() {
               <div className="bg-gray-50 rounded-xl p-4 mb-6">
                 <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Cliente</p>
                 <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+                {doc.cliente?.nif && <p className="text-sm text-gray-500">{doc.cliente.nif}</p>}
+                {doc.cliente?.direccion && <p className="text-sm text-gray-500">{doc.cliente.direccion}{doc.cliente?.ciudad ? `, ${doc.cliente.ciudad}` : ''}</p>}
+                {doc.cliente?.telefono && <p className="text-sm text-gray-500">{doc.cliente.telefono}</p>}
+                {doc.cliente?.email && <p className="text-sm text-gray-500">{doc.cliente.email}</p>}
               </div>
               <table className="w-full mb-6">
                 <thead>
@@ -369,11 +406,11 @@ export default function DocumentPage() {
                 <tbody>
                   {doc.lineas.map((l, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="p-3 text-sm">{l.description}</td>
-                      <td className="p-3 text-sm text-right font-mono">{l.quantity}</td>
-                      <td className="p-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
-                      <td className="p-3 text-sm text-right">{l.vat_rate}%</td>
-                      <td className="p-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                      <td className="p-3 text-sm text-gray-900">{l.description}</td>
+                      <td className="p-3 text-sm text-right font-mono text-gray-900">{l.quantity}</td>
+                      <td className="p-3 text-sm text-right font-mono text-gray-900">{formatearEuros(l.unit_price)}</td>
+                      <td className="p-3 text-sm text-right text-gray-900">{l.vat_rate}%</td>
+                      <td className="p-3 text-sm text-right font-mono font-medium text-gray-900">{formatearEuros(l.quantity * l.unit_price)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -394,7 +431,7 @@ export default function DocumentPage() {
           <div className="bg-white p-8">
             <div className="border-l-4 border-brand pl-6 mb-8">
               <p className="text-xs text-gray-400 uppercase tracking-widest">{tipoLabel}</p>
-              <p className="text-5xl font-black text-gray-900">{doc.numero}</p>
+              <p className="text-5xl font-black text-gray-900 leading-tight mt-1 mb-1">{doc.numero}</p>
               <p className="text-sm text-gray-400">{formatearFecha(doc.fecha)}</p>
             </div>
             <div className="grid grid-cols-2 gap-8 mb-8">
@@ -409,26 +446,30 @@ export default function DocumentPage() {
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Cliente</p>
                 <p className="font-bold text-gray-900">{doc.cliente?.nombre}</p>
+                {doc.cliente?.nif && <p className="text-sm text-gray-500">{doc.cliente.nif}</p>}
+                {doc.cliente?.direccion && <p className="text-sm text-gray-500">{doc.cliente.direccion}{doc.cliente?.ciudad ? `, ${doc.cliente.ciudad}` : ''}</p>}
+                {doc.cliente?.telefono && <p className="text-sm text-gray-500">{doc.cliente.telefono}</p>}
+                {doc.cliente?.email && <p className="text-sm text-gray-500">{doc.cliente.email}</p>}
               </div>
             </div>
             <table className="w-full mb-6">
               <thead>
                 <tr className="border-t-2 border-b-2 border-gray-900">
-                  <th className="text-left py-2 text-xs uppercase tracking-widest">Descripción</th>
-                  <th className="text-right py-2 text-xs uppercase tracking-widest">Cant.</th>
-                  <th className="text-right py-2 text-xs uppercase tracking-widest">Precio</th>
-                  <th className="text-right py-2 text-xs uppercase tracking-widest">IVA</th>
-                  <th className="text-right py-2 text-xs uppercase tracking-widest">Total</th>
+                  <th className="text-left py-2 text-xs uppercase tracking-widest text-gray-900">Descripción</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest text-gray-900">Cant.</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest text-gray-900">Precio</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest text-gray-900">IVA</th>
+                  <th className="text-right py-2 text-xs uppercase tracking-widest text-gray-900">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {doc.lineas.map((l, i) => (
                   <tr key={i} className="border-b border-gray-100">
-                    <td className="py-3 text-sm">{l.description}</td>
-                    <td className="py-3 text-sm text-right font-mono">{l.quantity}</td>
-                    <td className="py-3 text-sm text-right font-mono">{formatearEuros(l.unit_price)}</td>
-                    <td className="py-3 text-sm text-right">{l.vat_rate}%</td>
-                    <td className="py-3 text-sm text-right font-mono font-medium">{formatearEuros(l.quantity * l.unit_price)}</td>
+                    <td className="py-3 text-sm text-gray-900">{l.description}</td>
+                    <td className="py-3 text-sm text-right font-mono text-gray-900">{l.quantity}</td>
+                    <td className="py-3 text-sm text-right font-mono text-gray-900">{formatearEuros(l.unit_price)}</td>
+                    <td className="py-3 text-sm text-right text-gray-900">{l.vat_rate}%</td>
+                    <td className="py-3 text-sm text-right font-mono font-medium text-gray-900">{formatearEuros(l.quantity * l.unit_price)}</td>
                   </tr>
                 ))}
               </tbody>
