@@ -1,8 +1,68 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Fredoka:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-brand: #FF5C39;
+  --color-void: #0a0a0f;
+  --color-orange: #FF5C39;
+  --color-cyan: #00f5ff;
+  --color-pink: #ff00ff;
+  --color-green: #00ff88;
+  --color-dark-100: #1a1a2e;
+  --color-dark-200: #16213e;
+  --color-dark-300: #0f3460;
+  --font-sans: 'DM Sans';
+  --font-display: 'Orbitron';
+  --color-on-brand: #ffffff;
+}
+
+[data-tema="clasica"] {
+  --color-brand: #7a5c2e;
+  --color-void: #F7F5F0;
+  --color-orange: #7a5c2e;
+  --color-cyan: #1c2a3a;
+  --color-pink: #a8894f;
+  --color-green: #2e6b4f;
+  --color-dark-100: #eae6db;
+  --color-dark-200: #ddd6c8;
+  --color-dark-300: #c9c0ab;
+  --font-sans: 'DM Sans';
+  --font-display: 'Playfair Display';
+  --color-on-brand: #F7F5F0;
+}
+
+[data-tema="chispa"] {
+  --color-brand: #FF6B9D;
+  --color-void: #fff8ec;
+  --color-orange: #FF6B9D;
+  --color-cyan: #6C5CE7;
+  --color-pink: #FFE156;
+  --color-green: #2ecc71;
+  --color-dark-100: #ffe8f0;
+  --color-dark-200: #ffd9e6;
+  --color-dark-300: #e8d5ff;
+  --font-sans: 'Fredoka';
+  --font-display: 'Fredoka';
+  --color-on-brand: #2b1d4e;
+}
+
+[data-tema="editorial"] {
+  --color-brand: #161513;
+  --color-void: #F4F1EC;
+  --color-orange: #161513;
+  --color-cyan: #6b6459;
+  --color-pink: #8a8378;
+  --color-green: #3a3a35;
+  --color-dark-100: #ece8e0;
+  --color-dark-200: #e0dbd0;
+  --color-dark-300: #d0cabc;
+  --font-sans: 'DM Sans';
+  --font-display: 'Playfair Display';
+  --color-on-brand: #2b1d4e;
+}
 
 @layer base {
   body {
@@ -17,60 +77,79 @@
     scrollbar-width: thin;
     scrollbar-color: #00f5ff #0a0a0f;
   }
+  [data-tema="chispa"] .bg-void {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(135deg, #FFE156 0%, #FF6B9D 55%, #6C5CE7 100%);
+    background-size: 40px 40px, 40px 40px, cover;
+    background-attachment: fixed;
+  }
+
+  [data-tema="ochentera"] .bg-void {
+    background-image:
+      linear-gradient(rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 245, 255, 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 50% 100%, rgba(0, 255, 136, 0.12), transparent 70%);
+    background-size: 40px 40px, 40px 40px, cover;
+    background-attachment: fixed;
+  }
 }
 
 @layer utilities {
   .font-orbitron {
-    font-family: 'Orbitron', monospace;
+    font-family: var(--font-display), monospace;
   }
 
   .neon-orange {
-    text-shadow: 0 0 10px #FF5C39, 0 0 20px #FF5C39, 0 0 40px #FF5C39;
+    text-shadow: 0 0 10px var(--color-orange), 0 0 20px var(--color-orange), 0 0 40px var(--color-orange);
   }
 
   .neon-cyan {
-    text-shadow: 0 0 10px #00f5ff, 0 0 20px #00f5ff, 0 0 40px #00f5ff;
+    text-shadow: 0 0 10px var(--color-cyan), 0 0 20px var(--color-cyan), 0 0 40px var(--color-cyan);
   }
 
   .neon-pink {
-    text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 40px #ff00ff;
+    text-shadow: 0 0 10px var(--color-pink), 0 0 20px var(--color-pink), 0 0 40px var(--color-pink);
   }
 
   .neon-green {
-    text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00ff88;
+    text-shadow: 0 0 10px var(--color-green), 0 0 20px var(--color-green), 0 0 40px var(--color-green);
   }
 
   .card-dark {
-    background: rgba(0, 245, 255, 0.03);
-    border: 1px solid rgba(0, 245, 255, 0.15);
+    background: color-mix(in srgb, var(--color-cyan) 3%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-cyan) 15%, transparent);
     backdrop-filter: blur(10px);
     transition: all 0.2s;
   }
 
   .card-dark:hover {
-    border-color: rgba(0, 245, 255, 0.5);
-    box-shadow: 0 0 12px rgba(0, 245, 255, 0.15);
+    border-color: color-mix(in srgb, var(--color-cyan) 50%, transparent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan) 15%, transparent);
   }
 
   .btn-neon {
     background: transparent;
-    border: 1px solid #00f5ff;
-    box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), inset 0 0 10px rgba(0, 245, 255, 0.05);
+    border: 1px solid var(--color-cyan);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-cyan) 30%, transparent), inset 0 0 10px color-mix(in srgb, var(--color-cyan) 5%, transparent);
     transition: all 0.2s;
   }
 
   .btn-neon:hover {
-    box-shadow: 0 0 20px rgba(0, 245, 255, 0.6), inset 0 0 20px rgba(0, 245, 255, 0.1);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-cyan) 60%, transparent), inset 0 0 20px color-mix(in srgb, var(--color-cyan) 10%, transparent);
   }
 
   .btn-neon-solid {
-    background: linear-gradient(135deg, #FF5C39, #ff2d00);
-    box-shadow: 0 0 20px rgba(255, 92, 57, 0.5), 0 0 40px rgba(255, 92, 57, 0.2);
+    background: linear-gradient(135deg, var(--color-orange), var(--color-brand));
+    box-shadow: 0 0 20px color-mix(in srgb, var(--color-orange) 50%, transparent), 0 0 40px color-mix(in srgb, var(--color-orange) 20%, transparent);
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 0 6px rgba(0,0,0,0.4);
     transition: all 0.2s;
   }
 
   .btn-neon-solid:hover {
-    box-shadow: 0 0 30px rgba(255, 92, 57, 0.8), 0 0 60px rgba(255, 92, 57, 0.3);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--color-orange) 80%, transparent), 0 0 60px color-mix(in srgb, var(--color-orange) 30%, transparent);
     transform: scale(1.02);
   }
 
@@ -86,7 +165,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-cyan) 30%, transparent), transparent);
     animation: scan 4s linear infinite;
   }
 
@@ -107,23 +186,38 @@
   }
 
   .badge-green {
-    background: rgba(0, 255, 136, 0.1);
-    border: 1px solid rgba(0, 255, 136, 0.4);
-    color: #00ff88;
-    box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
+    background: color-mix(in srgb, var(--color-green) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-green) 40%, transparent);
+    color: var(--color-green);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-green) 20%, transparent);
   }
 
   .badge-pink {
-    background: rgba(255, 0, 255, 0.1);
-    border: 1px solid rgba(255, 0, 255, 0.4);
-    color: #ff00ff;
-    box-shadow: 0 0 8px rgba(255, 0, 255, 0.2);
+    background: color-mix(in srgb, var(--color-pink) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-pink) 40%, transparent);
+    color: var(--color-pink);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-pink) 20%, transparent);
   }
 
   .badge-orange {
-    background: rgba(255, 92, 57, 0.1);
-    border: 1px solid rgba(255, 92, 57, 0.4);
-    color: #FF5C39;
-    box-shadow: 0 0 8px rgba(255, 92, 57, 0.2);
+    background: color-mix(in srgb, var(--color-orange) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-orange) 40%, transparent);
+    color: var(--color-orange);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-orange) 20%, transparent);
+  }
+  [data-tema="clasica"] .text-white,
+  [data-tema="chispa"] .text-white,
+  [data-tema="editorial"] .text-white {
+    color: #1a1a1a;
+  }
+
+  [data-tema="clasica"] .text-gray-600,
+  [data-tema="chispa"] .text-gray-600,
+  [data-tema="editorial"] .text-gray-600 {
+    color: #6b6b6b;
+  }
+  [data-tema="chispa"] .text-neon-orange {
+    color: #2b1d4e;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
   }
 }

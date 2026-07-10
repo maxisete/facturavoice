@@ -94,7 +94,7 @@ export default function HomePage() {
       {/* Botón nuevo documento */}
       <button
         onClick={() => navigate('/dictar', { state: { tipo } })}
-        className="w-full flex items-center justify-center gap-3 btn-neon-solid text-white py-4 rounded-xl font-orbitron font-bold text-sm tracking-widest"
+        className="w-full flex items-center justify-center gap-3 btn-neon-solid py-4 rounded-xl font-orbitron font-bold text-sm tracking-widest"
       >
         <Zap size={18} />
         NUEVO {tipo.toUpperCase()}

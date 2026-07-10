@@ -16,10 +16,10 @@ export default function NavBar() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex"
       style={{
-        background: 'rgba(10, 10, 15, 0.95)',
-        borderTop: '1px solid rgba(0, 245, 255, 0.2)',
+        background: 'color-mix(in srgb, var(--color-void) 95%, transparent)',
+        borderTop: '1px solid color-mix(in srgb, var(--color-cyan) 20%, transparent)',
         backdropFilter: 'blur(20px)',
-        boxShadow: '0 -4px 20px rgba(0, 245, 255, 0.05)',
+        boxShadow: '0 -4px 20px color-mix(in srgb, var(--color-cyan) 5%, transparent)',
       }}
     >
       {TABS.map(({ path, label, icono: Icono }) => {

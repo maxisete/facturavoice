@@ -6,29 +6,29 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#FF5C39',
+          DEFAULT: 'var(--color-brand)',
         },
-        void: '#0a0a0f',
+        void: 'var(--color-void)',
         neon: {
-          orange: '#FF5C39',
-          cyan: '#00f5ff',
-          pink: '#ff00ff',
-          green: '#00ff88',
+          orange: 'var(--color-orange)',
+          cyan: 'var(--color-cyan)',
+          pink: 'var(--color-pink)',
+          green: 'var(--color-green)',
         },
         dark: {
-          100: '#1a1a2e',
-          200: '#16213e',
-          300: '#0f3460',
+          100: 'var(--color-dark-100)',
+          200: 'var(--color-dark-200)',
+          300: 'var(--color-dark-300)',
         },
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        orbitron: ['Orbitron', 'monospace'],
+        sans: ['var(--font-sans)', 'sans-serif'],
+        orbitron: ['var(--font-display)', 'monospace'],
       },
       boxShadow: {
-        neon: '0 0 10px #FF5C39, 0 0 20px #FF5C39',
-        'neon-sm': '0 0 5px #FF5C39',
-        'neon-cyan': '0 0 10px #00f5ff, 0 0 20px #00f5ff',
+        neon: '0 0 10px var(--color-orange), 0 0 20px var(--color-orange)',
+        'neon-sm': '0 0 5px var(--color-orange)',
+        'neon-cyan': '0 0 10px var(--color-cyan), 0 0 20px var(--color-cyan)',
       },
     },
   },

@@ -31,7 +31,7 @@ function Layout({ session, children }) {
 }
 
 export default function App() {
-  const { darkMode } = useAppStore()
+  const { darkMode, tema } = useAppStore()
   const [session, setSession] = useState(undefined)
   const [mfaRequerido, setMfaRequerido] = useState(false)
   const ignorar = useRef(false)
@@ -40,6 +40,9 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode)
   }, [darkMode])
+  useEffect(() => {
+    document.documentElement.setAttribute('data-tema', tema)
+  }, [tema])
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()

@@ -18,6 +18,10 @@ export const useAppStore = create(
       // Plantilla PDF
       plantillaPDF: 'clasica',
       setPlantillaPDF: (plantilla) => set({ plantillaPDF: plantilla }),
+
+      // Tema visual de la app
+      tema: 'ochentera',
+      setTema: (tema) => set({ tema }),
       
       // Modo oscuro
       modoOscuro: false,
@@ -54,6 +58,7 @@ export const useAppStore = create(
         clientes: state.clientes,
         modoOscuro: state.modoOscuro,
         plantillaPDF: state.plantillaPDF,
+        tema: state.tema,
         contadores: state.contadores,
       })
     }

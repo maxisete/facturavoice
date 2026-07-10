@@ -9,7 +9,7 @@ import ModalEliminarCuenta from '../components/ModalEliminarCuenta'
 
 export default function AjustesPage() {
   const navigate = useNavigate()
-  const { negocio, setNegocio, setContadores, plantillaPDF, setPlantillaPDF } = useAppStore()
+  const { negocio, setNegocio, setContadores, plantillaPDF, setPlantillaPDF, tema, setTema } = useAppStore()
   const [form, setForm] = useState({
     nombre_usuario: negocio?.nombre_usuario || '',
     nombre: negocio?.nombre || '',
@@ -180,18 +180,7 @@ export default function AjustesPage() {
               />
             </div>
           ))}
-          <div className="px-4 py-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
-            <div>
-              <p className="text-xs font-mono text-gray-600 mb-1">Color de marca</p>
-              <p className="text-sm font-mono text-neon-orange">{form.color_marca}</p>
-            </div>
-            <input
-              type="color"
-              value={form.color_marca}
-              onChange={e => handleCampo('color_marca', e.target.value)}
-              className="w-10 h-10 rounded-xl cursor-pointer border-0 bg-transparent"
-            />
-          </div>
+          
           <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
             <p className="text-xs font-mono text-gray-600 mb-3">Plantilla de PDF</p>
             <div className="grid grid-cols-2 gap-2">
@@ -207,6 +196,30 @@ export default function AjustesPage() {
                   style={plantillaPDF === p ? { boxShadow: '0 0 10px rgba(0,245,255,0.15)' } : {}}
                 >
                   {p.charAt(0).toUpperCase() + p.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
+            <p className="text-xs font-mono text-gray-600 mb-3">Aspecto de la app</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'clasica', label: 'Clásica' },
+                { id: 'ochentera', label: 'Ochentera' },
+                { id: 'chispa', label: 'Chispa' },
+                { id: 'editorial', label: 'Editorial' },
+              ].map(({ id, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setTema(id)}
+                  className={`py-2 rounded-xl font-mono text-sm transition-all ${
+                    tema === id
+                      ? 'text-neon-cyan border border-neon-cyan/50 bg-neon-cyan/10'
+                      : 'text-gray-600 border border-white/10 hover:border-neon-cyan/30'
+                  }`}
+                  style={tema === id ? { boxShadow: '0 0 10px rgba(0,245,255,0.15)' } : {}}
+                >
+                  {label}
                 </button>
               ))}
             </div>
