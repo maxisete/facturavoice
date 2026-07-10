@@ -64,8 +64,16 @@ export default function LoginPage({ mfaRequerido }) {
         setError('La contraseña debe contener al menos una letra mayúscula.')
         return
       }
+      if (!/[a-z]/.test(password)) {
+        setError('La contraseña debe contener al menos una letra minúscula.')
+        return
+      }
       if (!/[0-9]/.test(password)) {
         setError('La contraseña debe contener al menos un número.')
+        return
+      }
+      if (!/[!@#$%^&*()_+\-=[\]{};':"|<>?,./`~]/.test(password)) {
+        setError('La contraseña debe contener al menos un símbolo (por ejemplo: ! @ # $ %).')
         return
       }
       if (password !== confirmar) {
@@ -178,6 +186,11 @@ export default function LoginPage({ mfaRequerido }) {
               onFocus={e => e.target.style.borderColor = 'rgba(0,245,255,0.5)'}
               onBlur={e => e.target.style.borderColor = 'rgba(0,245,255,0.15)'}
             />
+            {modo === 'registro' && (
+              <p className="text-xs font-mono text-gray-600 mt-2">
+                Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo (ej: !@#$%).
+              </p>
+            )}
           </div>
 
           {modo === 'registro' && (
