@@ -97,7 +97,7 @@ export default function ClientesPage({ onSeleccionar }) {
         {!creando && (
           <button
             onClick={() => setCreando(true)}
-            className="flex items-center gap-2 btn-neon-solid text-white px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest"
+            className="flex items-center gap-2 btn-neon-solid px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest"
           >
             <Plus size={14} />
             NUEVO
@@ -225,7 +225,7 @@ export default function ClientesPage({ onSeleccionar }) {
               </button>
               <button
                 onClick={handleGuardarCliente}
-                className="flex-1 py-3 rounded-xl btn-neon-solid text-white font-orbitron font-bold text-sm tracking-widest"
+                className="flex-1 py-3 rounded-xl btn-neon-solid font-orbitron font-bold text-sm tracking-widest"
               >
                 <span className="flex items-center justify-center gap-2">
                   <Zap size={14} />

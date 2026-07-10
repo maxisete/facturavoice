@@ -220,4 +220,31 @@
     color: #2b1d4e;
     text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
   }
+
+  header,
+  .header-tema {
+    background: var(--color-void);
+  }
+
+  [data-tema="clasica"] header,
+  [data-tema="chispa"] header,
+  [data-tema="editorial"] header,
+  [data-tema="clasica"] .header-tema,
+  [data-tema="chispa"] .header-tema,
+  [data-tema="editorial"] .header-tema {
+    background: var(--color-void) !important;
+    border-bottom-color: color-mix(in srgb, var(--color-cyan) 15%, transparent) !important;
+  }
+
+  [data-tema="clasica"] .bg-void {
+    background-image:
+      repeating-linear-gradient(
+        90deg,
+        rgba(122, 92, 46, 0.06) 0px,
+        rgba(90, 65, 30, 0.09) 3px,
+        rgba(122, 92, 46, 0.06) 6px,
+        transparent 12px
+      );
+    background-color: #F7F5F0;
+  }
 }

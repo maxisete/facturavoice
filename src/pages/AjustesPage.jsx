@@ -132,7 +132,7 @@ export default function AjustesPage() {
         <h1 className="font-orbitron font-bold text-white flex-1 neon-cyan">AJUSTES</h1>
         <button
           onClick={handleGuardar}
-          className="flex items-center gap-2 btn-neon-solid text-white px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest"
+          className="flex items-center gap-2 btn-neon-solid px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest"
         >
           <Save size={14} />
           GUARDAR

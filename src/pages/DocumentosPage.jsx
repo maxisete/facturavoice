@@ -97,7 +97,7 @@ export default function DocumentosPage() {
   return (
     <div className="min-h-screen bg-void pb-8">
       {/* Header */}
-      <div className="px-5 pt-12 pb-0" style={{ borderBottom: '1px solid rgba(0,245,255,0.15)', background: 'rgba(10,10,15,0.98)' }}>
+      <div className="px-5 pt-12 pb-0 header-tema" style={{ borderBottom: '1px solid rgba(0,245,255,0.15)' }}>
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-orbitron font-bold text-white neon-cyan">DOCUMENTOS</h1>
           {tab === 'albaran' && !modoSeleccion && (
