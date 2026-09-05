@@ -1,16 +1,35 @@
-# React + Vite
+# FacturaVoice
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación de facturación desarrollada con React y Vite. Usa Supabase para autenticación, PostgreSQL, Row Level Security y almacenamiento, y se despliega en Vercel.
 
-Currently, two official plugins are available:
+## Desarrollo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Copia `.env.example` como `.env.local`.
+2. Completa sólo las variables necesarias en tu entorno local.
+3. Instala y ejecuta:
 
-## React Compiler
+```bash
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Nunca confirmes archivos `.env`, claves privadas, `service_role`, tokens ni credenciales de terceros.
 
-## Expanding the ESLint configuration
+## Supabase
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Configuración local: `supabase/config.toml`
+- Migraciones: `supabase/migrations/`
+- Tipos generados: `src/types/database.types.ts`
+- Arquitectura y procedimiento: `docs/SUPABASE_ARCHITECTURE.md`
+
+El esquema remoto y el repositorio deben cambiar juntos. Todo cambio de tablas, constraints, índices, RLS, Storage o funciones debe quedar en una migración revisada antes de desplegarse.
+
+## Comprobaciones
+
+```bash
+npm run lint
+npm run build
+npm audit --audit-level=high
+```
+
+Después de cualquier migración remota se deben revisar los Security Advisors y Performance Advisors de Supabase.

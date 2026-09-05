@@ -21,6 +21,17 @@ export default function ComprasPage() {
 
   const handleArchivo = async (archivo) => {
     if (!archivo) return
+
+    const tiposPermitidos = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
+    if (!tiposPermitidos.includes(archivo.type)) {
+      alert('Solo se permiten archivos PDF, PNG, JPEG o WEBP.')
+      return
+    }
+    if (archivo.size > 10 * 1024 * 1024) {
+      alert('El archivo no puede superar los 10 MB.')
+      return
+    }
+
     setSubiendo(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -28,7 +39,6 @@ export default function ComprasPage() {
       const ruta = `${user.id}/${Date.now()}.${extension}`
       const { error: errorSubida } = await supabase.storage.from('facturas-proveedor').upload(ruta, archivo)
       if (errorSubida) throw errorSubida
-      const { data: { publicUrl } } = supabase.storage.from('facturas-proveedor').getPublicUrl(ruta)
       const textoArchivo = await leerArchivoComoBase64(archivo)
       const datosExtraidos = await extraerConIA(textoArchivo, archivo.type, archivo)
       await supabase.from('facturas_proveedor').insert({
@@ -38,7 +48,9 @@ export default function ComprasPage() {
         fecha_factura: datosExtraidos.fecha_factura || '',
         lineas: datosExtraidos.lineas || [],
         total: datosExtraidos.total || 0,
-        archivo_url: publicUrl,
+        // El bucket es privado. Guardamos la ruta y generaremos una URL firmada
+        // únicamente cuando sea necesario descargar el archivo.
+        archivo_url: ruta,
       })
       await cargarFacturas()
     } catch (err) {

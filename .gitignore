@@ -23,4 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+.env*
+!.env.example
+
+# Supabase local state
+supabase/.temp/
+.supabase/
