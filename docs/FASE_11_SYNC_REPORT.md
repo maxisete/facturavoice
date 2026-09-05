@@ -5,7 +5,9 @@ Fecha de ejecución: 5 de septiembre de 2026
 Repositorio: `maxisete/facturavoice`
 
 Rama de trabajo: `codex/fase-11-supabase-sync`
-Commit técnico: `adfdb47` (`feat(supabase): sincronizar esquema y reforzar RLS`)
+Commit técnico publicado: `5a141d44` (`feat(supabase): sincronizar esquema, seguridad y documentación`)
+
+Commit de normalización: `8c257e3` (`chore(git): normalizar finales de linea del cambio`)
 
 ## Estado inicial
 
@@ -58,14 +60,14 @@ Se añadieron índices que cubren las claves foráneas y los accesos habituales:
 
 | Cambio | Motivo | Componente | Archivo | Comprobación | Resultado | Commit |
 | --- | --- | --- | --- | --- | --- | --- |
-| Migración base y hardening | Versionar producción y corregir RLS/rendimiento | PostgreSQL, RLS, Storage | `supabase/migrations/20260905092534_baseline_and_harden_facturavoice.sql` | Aplicación atómica e inspección posterior | Correcto | `adfdb47` |
-| Configuración local | Fijar PostgreSQL 17 y servicios locales sin secretos | Supabase CLI | `supabase/config.toml` | Parseo TOML | Correcto | `adfdb47` |
-| Tipos generados | Reflejar las seis tablas de producción | TypeScript | `src/types/database.types.ts` | Generación desde Supabase | Correcto | `adfdb47` |
-| Ruta de factura privada | Evitar guardar una URL pública para un bucket privado | Frontend y Storage | `src/pages/ComprasPage.jsx` | Build y validación de MIME/tamaño | Correcto | `adfdb47` |
-| Dependencias vulnerables | Corregir ocho avisos, incluido PDF.js | Cadena de suministro | `package-lock.json` | `npm ci` y `npm audit` | 0 vulnerabilidades | `adfdb47` |
-| CI de seguridad | Impedir que un fallo alto quede ignorado | GitHub Actions | `.github/workflows/security.yml` | Revisión del workflow | Correcto | `adfdb47` |
-| Protección de secretos | Ignorar variantes `.env` y documentar nombres de variables | Git y configuración | `.gitignore`, `.env.example` | Búsqueda de literales secretos | Sin secretos | `adfdb47` |
-| Documentación | Describir arquitectura y procedimiento futuro | Documentación | `README.md`, `docs/SUPABASE_ARCHITECTURE.md` | Revisión de diff | Correcto | `adfdb47` |
+| Migración base y hardening | Versionar producción y corregir RLS/rendimiento | PostgreSQL, RLS, Storage | `supabase/migrations/20260905092534_baseline_and_harden_facturavoice.sql` | Aplicación atómica e inspección posterior | Correcto | `5a141d44` |
+| Configuración local | Fijar PostgreSQL 17 y servicios locales sin secretos | Supabase CLI | `supabase/config.toml` | Parseo TOML | Correcto | `5a141d44` |
+| Tipos generados | Reflejar las seis tablas de producción | TypeScript | `src/types/database.types.ts` | Generación desde Supabase | Correcto | `5a141d44` |
+| Ruta de factura privada | Evitar guardar una URL pública para un bucket privado | Frontend y Storage | `src/pages/ComprasPage.jsx` | Build y validación de MIME/tamaño | Correcto | `5a141d44` |
+| Dependencias vulnerables | Corregir ocho avisos, incluido PDF.js | Cadena de suministro | `package-lock.json` | `npm ci` y `npm audit` | 0 vulnerabilidades | `5a141d44` |
+| CI de seguridad | Impedir que un fallo alto quede ignorado | GitHub Actions | `.github/workflows/security.yml` | Revisión del workflow | Correcto | `5a141d44` |
+| Protección de secretos | Ignorar variantes `.env` y documentar nombres de variables | Git y configuración | `.gitignore`, `.env.example` | Búsqueda de literales secretos | Sin secretos | `5a141d44` |
+| Documentación | Describir arquitectura y procedimiento futuro | Documentación | `README.md`, `docs/SUPABASE_ARCHITECTURE.md` | Revisión de diff | Correcto | `5a141d44` |
 
 ## Verificaciones realizadas
 
