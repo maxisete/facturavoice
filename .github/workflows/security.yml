@@ -25,5 +25,4 @@ jobs:
         run: npm ci
 
       - name: Auditoría de seguridad
-        run: npm audit --audit-level=high || true
-        # GHSA-qwww-vcr4-c8h2: no aplica, FacturaVoice no usa RSC (SPA con Vite)
+        run: npm audit --audit-level=high
