@@ -98,7 +98,7 @@ Se añadieron índices que cubren las claves foráneas y los accesos habituales:
 
 Persisten dos avisos conocidos:
 
-1. `auth_leaked_password_protection` — WARN. La protección frente a contraseñas filtradas está desactivada. Debe habilitarse en Auth; no es una migración SQL.
+1. `auth_leaked_password_protection` — WARN. La protección frente a contraseñas filtradas está desactivada. La organización se verificó en plan `free` y Supabase sólo ofrece esta función integrada en Pro o superior. No es una migración SQL y no se intentó forzar su activación.
 2. `rls_enabled_no_policy` — INFO. Afecta a `cuentas_eliminadas` y representa el cierre deliberado de la tabla frente a clientes.
 
 Referencia: <https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection>
@@ -117,4 +117,4 @@ Se revisaron expresamente patrones de `service_role`, JWT, secretos de Supabase,
 
 El esquema, RLS, Storage, índices y permisos aplicados a Supabase están representados por la migración remota y por el mismo archivo en Git. Los tipos se generaron desde el esquema resultante. No existen Edge Functions que sincronizar.
 
-Quedan fuera del cierre técnico de esta fase la activación manual de protección de contraseñas filtradas y la deuda de lint ya existente.
+La protección frente a contraseñas filtradas se cierra como limitación aceptada del plan Free. El Advisor seguirá mostrando el aviso mientras no se actualice el plan. La deuda de lint ya existente permanece registrada por separado.
