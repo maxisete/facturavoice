@@ -1,0 +1,25 @@
+// Configuración de audit-ci para el trabajo "audit-desarrollo"
+// de .github/workflows/security.yml.
+//
+// Falla ante cualquier vulnerabilidad alta o crítica de todo el árbol de
+// dependencias, salvo las excepciones de "allowlist".
+//
+// EXCEPCIONES ACEPTADAS (analizadas el 6 oct 2026, PR #3):
+// - GHSA-vfj7-8cjw-p6xm (braces, severidad alta): a 6 oct 2026 llega solo a
+//   través de tailwindcss 3.4.19 (chokidar, fast-glob, micromatch), según
+//   `npm ls braces`. Es una herramienta de compilación y no forma parte del
+//   código que llega al navegador. braces no tiene versión corregida
+//   compatible con Tailwind 3.
+//   La excepción se aplica al aviso completo: el informe de npm no conserva
+//   la cadena hasta tailwindcss, así que no puede limitarse a esa ruta.
+//   Si se añade una dependencia nueva, comprobar de nuevo `npm ls braces`.
+//   RETIRAR al migrar a Tailwind 4.
+//
+// GHSA-rj75-hqrm-r3gf (postcss-selector-parser, moderada) no necesita
+// excepción: está por debajo del umbral "high".
+{
+  "high": true,
+  "allowlist": [
+    "GHSA-vfj7-8cjw-p6xm"
+  ]
+}

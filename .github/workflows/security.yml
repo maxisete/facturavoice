@@ -8,8 +8,13 @@ on:
   schedule:
     - cron: '0 8 * * 1'  # Cada lunes a las 8:00 UTC
 
+# Permisos mínimos: el workflow solo necesita leer el código.
+permissions:
+  contents: read
+
 jobs:
-  audit:
+  audit-produccion:
+    name: Auditoría de producción
     runs-on: ubuntu-latest
     steps:
       - name: Checkout código
@@ -24,5 +29,29 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Auditoría de seguridad
-        run: npm audit --audit-level=high
+      # Solo lo que llega al navegador. Falla ante cualquier vulnerabilidad,
+      # incluidas las de severidad baja. Sin excepciones.
+      - name: Auditoría de dependencias de producción
+        run: npm audit --omit=dev --audit-level=low
+
+  audit-desarrollo:
+    name: Auditoría de desarrollo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Todo el árbol (incluida la cadena de compilación). Falla ante
+      # vulnerabilidades altas o críticas, salvo las excepciones
+      # justificadas en audit-ci.jsonc.
+      - name: Auditoría completa con excepciones documentadas
+        run: npx --yes audit-ci@7.1.0 --config audit-ci.jsonc
