@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FileText, Receipt, Truck, CheckSquare, Users, ChevronDown, ChevronRight, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatearEuros, formatearFecha } from '../lib/document'
-import { useAppStore } from '../store/appStore'
-
+import { obtenerSiguienteNumero } from '../lib/numeracion'
 const TABS = [
   { id: 'presupuesto', label: 'Presupuestos', icono: FileText },
   { id: 'factura', label: 'Facturas', icono: Receipt },
@@ -19,7 +18,6 @@ export default function DocumentosPage() {
   const [cargando, setCargando] = useState(true)
   const [modoSeleccion, setModoSeleccion] = useState(false)
   const [seleccionados, setSeleccionados] = useState([])
-  const { getSiguienteNumero, incrementarContador } = useAppStore()
   const [clientesConDocs, setClientesConDocs] = useState([])
   const [clienteAbierto, setClienteAbierto] = useState(null)
 
@@ -73,8 +71,14 @@ export default function DocumentosPage() {
       unit_price: alb.totales?.subtotal || 0,
       vat_rate: 21,
     }))
-    const numero = getSiguienteNumero('factura')
-    incrementarContador('factura')
+    let numero
+    try {
+      numero = await obtenerSiguienteNumero('factura')
+    } catch (err) {
+      console.error('Error obteniendo el número de factura:', err)
+      alert('No se ha podido obtener el número de factura. Inténtalo de nuevo.')
+      return
+    }
     const factura = {
       id: crypto.randomUUID(),
       tipo: 'factura',

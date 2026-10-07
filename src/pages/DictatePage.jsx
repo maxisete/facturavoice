@@ -1,10 +1,10 @@
 import { useState } from 'react'
+import { obtenerSiguienteNumero } from '../lib/numeracion'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Mic, MicOff, ChevronLeft, AlertCircle, User, Zap } from 'lucide-react'
 import { useVoice } from '../hooks/useVoice'
 import { parseDictation } from '../lib/groq'
 import { crearDocumentoVacio, calcularTotales } from '../lib/document'
-import { useAppStore } from '../store/appStore'
 import { registrarAccion } from '../lib/auditoria'
 import ClientesPage from './ClientesPage'
 
@@ -13,7 +13,6 @@ export default function DictatePage() {
   const location = useLocation()
   const tipo = location.state?.tipo || 'presupuesto'
   const lineasImportadas = location.state?.lineasImportadas || null
-  const { getSiguienteNumero, incrementarContador } = useAppStore()
   const { grabando, transcripcion, transcripcionRef, error, duracion, nivelAudio, formatearDuracion, iniciarGrabacion, detenerGrabacion } = useVoice()
   const [procesando, setProcesando] = useState(false)
   const [pasoActual, setPasoActual] = useState('')
@@ -45,8 +44,7 @@ export default function DictatePage() {
       const resultado = await parseDictation(texto)
       setPasoActual('Generando documento…')
       await esperar(400)
-      const numero = getSiguienteNumero(tipo)
-      incrementarContador(tipo)
+      const numero = await obtenerSiguienteNumero(tipo)
       const clienteFinal = cliente || { id: 'prueba', nombre: 'Cliente de prueba' }
       const doc = crearDocumentoVacio(tipo, clienteFinal, numero)
       const lineasDictado = (resultado.lines || []).map(l => ({
