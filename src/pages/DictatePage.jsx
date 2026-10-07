@@ -58,7 +58,7 @@ export default function DictatePage() {
       doc.notas = resultado.notes
       doc.totales = calcularTotales(doc.lineas)
       await registrarAccion('crear_documento', { tipo, numero, cliente: clienteFinal.nombre })
-      navigate('/documento', { state: { documento: doc } })
+      navigate('/documento', { state: { documento: doc, esNuevo: true } })
     } catch (err) {
       setErrorProceso('Hubo un problema al procesar el dictado. Inténtalo de nuevo.')
       console.error(err)
