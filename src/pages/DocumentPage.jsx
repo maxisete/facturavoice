@@ -5,6 +5,7 @@ import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document
 import { useAppStore } from '../store/appStore'
 import { registrarAccion } from '../lib/auditoria'
 import { supabase } from '../lib/supabase'
+import { obtenerSiguienteNumero } from '../lib/numeracion'
 
 // Prepara un documento para la pantalla: los albaranes van sin IVA y los
 // totales se recalculan siempre a partir de las líneas.
@@ -29,7 +30,7 @@ export default function DocumentPage() {
   const [cargando, setCargando] = useState(!esNuevo && Boolean(docRaw?.id))
   const [errorCarga, setErrorCarga] = useState(null)
   const [generando, setGenerando] = useState(false)
-  const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
+  const { negocio, plantillaPDF } = useAppStore()
   const soloLectura = doc?.tipo === 'factura' || (doc?.tipo === 'albaran' && doc?.facturado)
 
   // Se ejecuta una sola vez, al abrir la pantalla.
@@ -152,9 +153,15 @@ export default function DocumentPage() {
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
   }
 
-  const handleConvertirAFactura = () => {
-    const numero = getSiguienteNumero('factura')
-    incrementarContador('factura')
+  const handleConvertirAFactura = async () => {
+    let numero
+    try {
+      numero = await obtenerSiguienteNumero('factura')
+    } catch (err) {
+      console.error('Error obteniendo el número de factura:', err)
+      alert('No se ha podido obtener el número de factura. Inténtalo de nuevo.')
+      return
+    }
     const factura = { ...doc, id: crypto.randomUUID(), tipo: 'factura', numero, fecha: new Date().toISOString() }
     navigate('/')
     setTimeout(() => navigate('/documento', { state: { documento: factura, esNuevo: true } }), 150)

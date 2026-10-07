@@ -1,14 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// La numeración de documentos ya no vive aquí: la asigna la base de datos
+// (funciones siguiente_numero y fijar_numeracion, issue #13).
 export const useAppStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       // Datos del negocio
       negocio: null,
       setNegocio: (negocio) => set({ negocio }),
-
-      setContadores: (contadores) => set({ contadores }),
 
       // Clientes
       clientes: [],
@@ -22,34 +22,10 @@ export const useAppStore = create(
       // Tema visual de la app
       tema: 'ochentera',
       setTema: (tema) => set({ tema }),
-      
+
       // Modo oscuro
       modoOscuro: false,
       toggleModoOscuro: () => set(s => ({ modoOscuro: !s.modoOscuro })),
-
-      // Numeración automática de documentos
-      contadores: {},
-      getSiguienteNumero: (tipo) => {
-        const año = new Date().getFullYear()
-        const prefijo = tipo === 'factura' ? 'F' : tipo === 'presupuesto' ? 'P' : 'A'
-        const clave = `${prefijo}-${año}`
-        const negocio = get().negocio
-        const campoContador = `contador_${tipo === 'albaran' ? 'albaran' : tipo}`
-        const actual = get().contadores[clave] ?? (negocio?.[campoContador] ? negocio[campoContador] - 1 : 0)
-        const siguiente = actual + 1
-        return `${clave}-${String(siguiente).padStart(3, '0')}`
-      },
-      incrementarContador: (tipo) => {
-        const año = new Date().getFullYear()
-        const prefijo = tipo === 'factura' ? 'F' : tipo === 'presupuesto' ? 'P' : 'A'
-        const clave = `${prefijo}-${año}`
-        set(s => ({
-          contadores: {
-            ...s.contadores,
-            [clave]: (s.contadores[clave] || 0) + 1
-          }
-        }))
-      }
     }),
     {
       name: 'facturavoice-storage',
@@ -59,7 +35,6 @@ export const useAppStore = create(
         modoOscuro: state.modoOscuro,
         plantillaPDF: state.plantillaPDF,
         tema: state.tema,
-        contadores: state.contadores,
       })
     }
   )

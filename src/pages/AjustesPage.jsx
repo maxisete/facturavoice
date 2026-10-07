@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, Save, LogOut, Shield, ShieldCheck } from 'lucide-react'
 import { useAppStore } from '../store/appStore'
@@ -6,10 +6,17 @@ import { supabase } from '../lib/supabase'
 import { registrarAccion } from '../lib/auditoria'
 import { Trash2 } from 'lucide-react'
 import ModalEliminarCuenta from '../components/ModalEliminarCuenta'
+import { consultarSiguienteNumero, fijarNumeracion } from '../lib/numeracion'
+
+const TIPOS_NUMERACION = [
+  { tipo: 'presupuesto', prefijo: 'P', nombre: 'presupuesto' },
+  { tipo: 'factura',     prefijo: 'F', nombre: 'factura' },
+  { tipo: 'albaran',     prefijo: 'A', nombre: 'albarán' },
+]
 
 export default function AjustesPage() {
   const navigate = useNavigate()
-  const { negocio, setNegocio, setContadores, plantillaPDF, setPlantillaPDF, tema, setTema } = useAppStore()
+  const { negocio, setNegocio, plantillaPDF, setPlantillaPDF, tema, setTema } = useAppStore()
   const [form, setForm] = useState({
     nombre_usuario: negocio?.nombre_usuario || '',
     nombre: negocio?.nombre || '',
@@ -20,9 +27,6 @@ export default function AjustesPage() {
     email: negocio?.email || '',
     iva_defecto: negocio?.iva_defecto || 21,
     color_marca: negocio?.color_marca || '#FF5C39',
-    contador_presupuesto: negocio?.contador_presupuesto || 1,
-    contador_factura: negocio?.contador_factura || 1,
-    contador_albaran: negocio?.contador_albaran || 1,
   })
   const [contactoNombre, setContactoNombre] = useState('')
   const [contactoEmail, setContactoEmail] = useState('')
@@ -37,6 +41,32 @@ export default function AjustesPage() {
   const [mfaError, setMfaError] = useState(null)
   const [mfaPaso, setMfaPaso] = useState('idle') // idle | qr | verificando | activado
   const [mostrarModalEliminar, setMostrarModalEliminar] = useState(false)
+  const [numeracion, setNumeracion] = useState(null)
+  const [proximos, setProximos] = useState({})
+  const [errorNumeracion, setErrorNumeracion] = useState(null)
+
+  // Próximo número real de cada serie del año, consultado a la base de datos.
+  useEffect(() => {
+    let cancelado = false
+    const cargarNumeracion = async () => {
+      try {
+        const valores = await Promise.all(
+          TIPOS_NUMERACION.map(({ tipo }) => consultarSiguienteNumero(tipo))
+        )
+        if (cancelado) return
+        const resultado = Object.fromEntries(
+          TIPOS_NUMERACION.map(({ tipo }, i) => [tipo, valores[i]])
+        )
+        setNumeracion(resultado)
+        setProximos(resultado)
+      } catch (err) {
+        console.error('Error consultando la numeración:', err)
+        if (!cancelado) setErrorNumeracion('No se ha podido cargar la numeración.')
+      }
+    }
+    cargarNumeracion()
+    return () => { cancelado = true }
+  }, [])
 
   const comprobarMFA = async () => {
     const { data } = await supabase.auth.mfa.listFactors()
@@ -76,17 +106,26 @@ export default function AjustesPage() {
   }
 
   const handleGuardar = async () => {
-    const año = new Date().getFullYear()
+    setErrorNumeracion(null)
     setNegocio(form)
-    setContadores({
-      [`P-${año}`]: form.contador_presupuesto - 1,
-      [`F-${año}`]: form.contador_factura - 1,
-      [`A-${año}`]: form.contador_albaran - 1,
-    })
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       await supabase.from('negocios').upsert({ id: user.id, ...form })
       await registrarAccion('cambiar_ajustes', { nombre: form.nombre, email: form.email })
+    }
+    // Numeración: solo se envían los tipos que el usuario ha cambiado.
+    if (numeracion) {
+      for (const { tipo } of TIPOS_NUMERACION) {
+        const proximo = proximos[tipo]
+        if (proximo === numeracion[tipo]) continue
+        try {
+          await fijarNumeracion(tipo, proximo - 1)
+          await registrarAccion('cambiar_numeracion', { tipo, proximo })
+        } catch (err) {
+          setErrorNumeracion(err.message || 'No se ha podido cambiar la numeración.')
+          return
+        }
+      }
     }
     navigate(-1)
   }
@@ -110,7 +149,7 @@ export default function AjustesPage() {
   }
 
   useState(() => { comprobarMFA() }, [])
-  
+
   const camposNegocio = [
     { campo: 'nombre_usuario', label: 'Tu nombre', tipo: 'text', placeholder: 'Maxi, Emilio, Juan Luis…' },
     { campo: 'nombre', label: 'Nombre o razón social', tipo: 'text', placeholder: 'Pinturas García S.L.' },
@@ -166,9 +205,6 @@ export default function AjustesPage() {
           </p>
           {[
             { campo: 'iva_defecto', label: 'IVA por defecto (%)', tipo: 'number', parser: v => parseFloat(v) || 21 },
-            { campo: 'contador_presupuesto', label: 'Próximo nº de presupuesto', tipo: 'number', parser: v => parseInt(v) || 1 },
-            { campo: 'contador_factura', label: 'Próximo nº de factura', tipo: 'number', parser: v => parseInt(v) || 1 },
-            { campo: 'contador_albaran', label: 'Próximo nº de albarán', tipo: 'number', parser: v => parseInt(v) || 1 },
           ].map(({ campo, label, tipo, parser }) => (
             <div key={campo} className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
               <p className="text-xs font-mono text-gray-600 mb-1">{label}</p>
@@ -180,7 +216,38 @@ export default function AjustesPage() {
               />
             </div>
           ))}
-          
+
+          {/* Numeración de documentos */}
+          <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
+            <p className="text-xs font-mono text-gray-600 mb-1">Numeración de documentos</p>
+            <p className="text-xs font-mono text-gray-700 mb-3">
+              Empieza en 001 y se reinicia automáticamente cada 1 de enero. Cámbiala solo si
+              continúas una numeración de otro programa: no puede ser menor que un número ya usado.
+            </p>
+            {TIPOS_NUMERACION.map(({ tipo, prefijo, nombre }) => (
+              <div key={tipo} className="mb-3">
+                <p className="text-xs font-mono text-gray-600 mb-1">
+                  Próximo nº de {nombre} ({prefijo}-{new Date().getFullYear()})
+                </p>
+                <input
+                  type="number"
+                  min="1"
+                  value={proximos[tipo] ?? ''}
+                  disabled={!numeracion}
+                  placeholder={numeracion ? '' : 'Cargando…'}
+                  onChange={e => setProximos(prev => ({
+                    ...prev,
+                    [tipo]: Math.max(1, parseInt(e.target.value) || 1),
+                  }))}
+                  className="w-full text-sm text-white bg-transparent focus:outline-none font-mono disabled:opacity-50"
+                />
+              </div>
+            ))}
+            {errorNumeracion && (
+              <p className="text-xs font-mono text-red-400">{errorNumeracion}</p>
+            )}
+          </div>
+
           <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(0,245,255,0.07)' }}>
             <p className="text-xs font-mono text-gray-600 mb-3">Plantilla de PDF</p>
             <div className="grid grid-cols-2 gap-2">
@@ -281,7 +348,7 @@ export default function AjustesPage() {
             ) : null}
           </div>
         </div>
-        
+
         {/* Formulario de contacto */}
         <div className="card-dark rounded-xl p-6 space-y-4">
           <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest">// CONTACTO / SOPORTE</p>
@@ -317,7 +384,7 @@ export default function AjustesPage() {
             </p>
           )}
         </div>
-        
+
         {/* Zona de peligro */}
         <div className="card-dark rounded-xl p-4" style={{ border: '1px solid rgba(255,50,50,0.2)' }}>
           <p className="text-xs font-orbitron text-red-400/60 tracking-widest mb-3">// ZONA DE PELIGRO</p>
