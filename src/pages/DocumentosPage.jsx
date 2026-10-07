@@ -91,7 +91,7 @@ export default function DocumentosPage() {
         supabase.from('documentos').update({ facturado: true }).eq('id', alb.id)
       ))
     }
-    navigate('/documento', { state: { documento: factura } })
+    navigate('/documento', { state: { documento: factura, esNuevo: true } })
   }
 
   return (

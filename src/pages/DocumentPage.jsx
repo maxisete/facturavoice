@@ -6,40 +6,102 @@ import { useAppStore } from '../store/appStore'
 import { registrarAccion } from '../lib/auditoria'
 import { supabase } from '../lib/supabase'
 
+// Prepara un documento para la pantalla: los albaranes van sin IVA y los
+// totales se recalculan siempre a partir de las líneas.
+function normalizarDocumento(documento) {
+  const lineas = (documento.lineas || []).map(l => ({
+    ...l,
+    vat_rate: documento.tipo === 'albaran' ? 0 : (l.vat_rate || 21),
+  }))
+  return { ...documento, lineas, totales: calcularTotales(lineas) }
+}
+
 export default function DocumentPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const docRaw = location.state?.documento || null
-  const lineasIniciales = (docRaw?.lineas || []).map(l => ({
-    ...l,
-    vat_rate: docRaw?.tipo === 'albaran' ? 0 : (l.vat_rate || 21)
-  }))
-  const [doc, setDoc] = useState(docRaw ? {
-    ...docRaw,
-    lineas: lineasIniciales,
-    totales: calcularTotales(lineasIniciales),
-  } : null)
+  const docRaw = location.state?.documento ?? null
+  // Solo las pantallas que CREAN un documento pasan esNuevo: true.
+  const esNuevo = location.state?.esNuevo === true
+
+  // Un documento nuevo se muestra con los datos recibidos; uno existente se
+  // carga siempre desde Supabase, que es la fuente de verdad.
+  const [doc, setDoc] = useState(() => (esNuevo && docRaw ? normalizarDocumento(docRaw) : null))
+  const [cargando, setCargando] = useState(!esNuevo && Boolean(docRaw?.id))
+  const [errorCarga, setErrorCarga] = useState(null)
   const [generando, setGenerando] = useState(false)
   const { negocio, plantillaPDF, getSiguienteNumero, incrementarContador } = useAppStore()
   const soloLectura = doc?.tipo === 'factura' || (doc?.tipo === 'albaran' && doc?.facturado)
 
-  useEffect(() => { if (!doc) navigate('/') }, [])
-  if (!doc) return null
-
+  // Se ejecuta una sola vez, al abrir la pantalla.
   useEffect(() => {
-    if (!doc) return
-    const guardarEnSupabase = async () => {
+    if (!docRaw?.id) {
+      navigate('/')
+      return
+    }
+    let cancelado = false
+
+    const guardarNuevo = async (documento) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      await supabase.from('documentos').upsert({
-        id: doc.id, user_id: user.id, tipo: doc.tipo, numero: doc.numero,
-        cliente: doc.cliente, lineas: doc.lineas, totales: doc.totales,
-        fecha: doc.fecha, notas: doc.notas || null,
-      })
-      await registrarAccion('guardar_documento', { tipo: doc.tipo, numero: doc.numero, cliente: doc.cliente?.nombre })
+      // ignoreDuplicates: si ya existe un documento con ese id, NO se toca.
+      // Así este guardado nunca puede sobrescribir un documento existente.
+      const { error } = await supabase.from('documentos').upsert({
+        id: documento.id, user_id: user.id, tipo: documento.tipo, numero: documento.numero,
+        cliente: documento.cliente, lineas: documento.lineas, totales: documento.totales,
+        fecha: documento.fecha, notas: documento.notas || null,
+      }, { onConflict: 'id', ignoreDuplicates: true })
+      if (error) {
+        console.error('Error guardando documento nuevo:', error)
+        return
+      }
+      await registrarAccion('guardar_documento', { tipo: documento.tipo, numero: documento.numero, cliente: documento.cliente?.nombre })
     }
-    guardarEnSupabase()
-  }, [doc?.id])
+
+    const cargarExistente = async () => {
+      const { data, error } = await supabase
+        .from('documentos')
+        .select('*')
+        .eq('id', docRaw.id)
+        .single()
+      if (cancelado) return
+      if (error || !data) {
+        console.error('Error cargando documento:', error)
+        setErrorCarga('No se ha podido cargar el documento.')
+      } else {
+        setDoc(normalizarDocumento(data))
+      }
+      setCargando(false)
+    }
+
+    if (esNuevo) guardarNuevo(doc)
+    else cargarExistente()
+
+    return () => { cancelado = true }
+    // Intencionado: solo al abrir. Los datos de entrada llegan con la
+    // navegación y no cambian mientras la pantalla está abierta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-void flex items-center justify-center">
+        <p className="font-mono text-sm text-gray-600">// Cargando documento…</p>
+      </div>
+    )
+  }
+
+  if (errorCarga) {
+    return (
+      <div className="min-h-screen bg-void flex flex-col items-center justify-center gap-4 px-5">
+        <p className="font-mono text-sm text-red-400">{errorCarga}</p>
+        <button onClick={() => navigate('/')} className="btn-neon text-neon-cyan px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest">
+          VOLVER
+        </button>
+      </div>
+    )
+  }
+
+  if (!doc) return null
 
   const esperarImagenes = (contenedor) => {
     const imagenes = Array.from(contenedor.querySelectorAll('img'))
@@ -95,7 +157,7 @@ export default function DocumentPage() {
     incrementarContador('factura')
     const factura = { ...doc, id: crypto.randomUUID(), tipo: 'factura', numero, fecha: new Date().toISOString() }
     navigate('/')
-    setTimeout(() => navigate('/documento', { state: { documento: factura } }), 150)
+    setTimeout(() => navigate('/documento', { state: { documento: factura, esNuevo: true } }), 150)
   }
 
   return (
