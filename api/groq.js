@@ -1,31 +1,67 @@
 import { Redis } from '@upstash/redis'
+import { obtenerUsuario } from './_lib/autenticacion.js'
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 })
 
+const MODELO = 'openai/gpt-oss-120b'
+const MAX_MENSAJES = 10
+const MAX_CARACTERES_MENSAJE = 12000
+const ROLES_PERMITIDOS = ['system', 'user']
+const VENTANA = 60 * 15 // 15 minutos en segundos
+
+// Suma una petición al contador de la clave e indica si se ha superado el límite.
+async function superaLimite(clave, limite) {
+  const contador = await redis.incr(clave)
+  if (contador === 1) await redis.expire(clave, VENTANA)
+  return contador > limite
+}
+
+// Devuelve el valor dentro de [minimo, maximo], o el valor por defecto si no es un número.
+function acotar(valor, minimo, maximo, porDefecto) {
+  const numero = Number(valor)
+  if (!Number.isFinite(numero)) return porDefecto
+  return Math.min(maximo, Math.max(minimo, numero))
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' })
   }
 
-  // Rate limiting: 30 peticiones por IP cada 15 minutos
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown'
-  const key = `ratelimit:groq:${ip}`
-  const limite = 30
-  const ventana = 60 * 15
+  // 1. Sesión obligatoria: solo usuarios de FacturaVoice pueden usar la IA.
+  const usuario = await obtenerUsuario(req)
+  if (!usuario) {
+    return res.status(401).json({ error: 'Debes iniciar sesión.' })
+  }
 
-  const contador = await redis.incr(key)
-  if (contador === 1) await redis.expire(key, ventana)
-  if (contador > limite) {
+  // 2. Límites: 30 peticiones por usuario y 60 por IP cada 15 minutos.
+  const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || req.socket?.remoteAddress
+    || 'desconocida'
+  if (
+    await superaLimite(`ratelimit:groq:usuario:${usuario.id}`, 30) ||
+    await superaLimite(`ratelimit:groq:ip:${ip}`, 60)
+  ) {
     return res.status(429).json({ error: 'Demasiadas peticiones. Inténtalo en 15 minutos.' })
   }
 
-  const { messages, temperature = 0.1, max_tokens = 1000 } = req.body
-
-  if (!messages) {
-    return res.status(400).json({ error: 'Faltan parámetros' })
+  // 3. Validación de los mensajes.
+  const { messages, temperature, max_tokens } = req.body || {}
+  const mensajesValidos = Array.isArray(messages)
+    && messages.length > 0
+    && messages.length <= MAX_MENSAJES
+    && messages.every(m =>
+      m
+      && ROLES_PERMITIDOS.includes(m.role)
+      && typeof m.content === 'string'
+      && m.content.length > 0
+      && m.content.length <= MAX_CARACTERES_MENSAJE
+    )
+  if (!mensajesValidos) {
+    return res.status(400).json({ error: 'Petición no válida.' })
   }
 
   try {
@@ -36,10 +72,11 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages,
-        temperature,
-        max_tokens,
+        model: MODELO,
+        // Solo se reenvían role y content: cualquier otro campo se descarta.
+        messages: messages.map(({ role, content }) => ({ role, content })),
+        temperature: acotar(temperature, 0, 1, 0.1),
+        max_tokens: Math.round(acotar(max_tokens, 1, 4000, 1000)),
       }),
     })
 

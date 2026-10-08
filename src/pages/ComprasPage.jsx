@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Upload, Camera, FileText, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatearEuros } from '../lib/document'
+import { llamarIA } from '../lib/groq'
 
 export default function ComprasPage() {
   const [facturas, setFacturas] = useState([])
@@ -84,15 +85,11 @@ export default function ComprasPage() {
   const extraerConIA = async (base64, tipo, archivo) => {
     const esImagen = tipo.startsWith('image/')
     let textoFactura = esImagen ? '[imagen adjunta]' : await extraerTextoPDF(archivo)
-    const response = await fetch('/api/groq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        temperature: 0.1,
-        messages: [{ role: 'user', content: `Analiza este texto de una factura de proveedor y extrae los datos. Devuelve SOLO un JSON válido con esta estructura exacta, sin texto adicional, sin markdown:\n{\n  "nombre_proveedor": "nombre de la empresa proveedora",\n  "numero_factura": "número de factura",\n  "fecha_factura": "fecha en formato DD/MM/YYYY",\n  "total": 123.45,\n  "lineas": [\n    {\n      "referencia": "REF-001",\n      "descripcion": "Descripción del producto",\n      "cantidad": 1,\n      "precio_neto": 10.00,\n      "pvp": 15.00,\n      "iva": 21\n    }\n  ]\n}\n\nTexto de la factura:\n${textoFactura.substring(0, 4000)}` }],
-      })
-    })
-    const data = await response.json()
+    const data = await llamarIA({
+      temperature: 0.1,
+      max_tokens: 3000,
+      messages: [{ role: 'user', content: `Analiza este texto de una factura de proveedor y extrae los datos. Devuelve SOLO un JSON válido con esta estructura exacta, sin texto adicional, sin markdown:\n{\n  "nombre_proveedor": "nombre de la empresa proveedora",\n  "numero_factura": "número de factura",\n  "fecha_factura": "fecha en formato DD/MM/YYYY",\n  "total": 123.45,\n  "lineas": [\n    {\n      "referencia": "REF-001",\n      "descripcion": "Descripción del producto",\n      "cantidad": 1,\n      "precio_neto": 10.00,\n      "pvp": 15.00,\n      "iva": 21\n    }\n  ]\n}\n\nTexto de la factura:\n${textoFactura.substring(0, 4000)}` }],
+    })  
     const texto = data.choices[0].message.content.trim()
     return JSON.parse(texto.replace(/```json|```/g, '').trim())
   }

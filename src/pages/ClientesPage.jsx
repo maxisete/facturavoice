@@ -4,6 +4,7 @@ import { ChevronLeft, Plus, User, Mic, MicOff, AlertCircle, Zap } from 'lucide-r
 import { useAppStore } from '../store/appStore'
 import { supabase } from '../lib/supabase'
 import { useVoice } from '../hooks/useVoice'
+import { llamarIA } from '../lib/groq'
 
 export default function ClientesPage({ onSeleccionar }) {
   const navigate = useNavigate()
@@ -45,12 +46,7 @@ export default function ClientesPage({ onSeleccionar }) {
       try {
         setProcesando(true)
         const prompt = `Extrae los datos de un cliente de este texto y devuelve SOLO JSON sin markdown:\n{\n  "nombre": "nombre completo o razón social",\n  "nif": "DNI o CIF o null",\n  "telefono": "teléfono o null",\n  "email": "email o null",\n  "direccion": "dirección o null",\n  "ciudad": "ciudad o null"\n}\nTexto: "${texto}"`
-        const response = await fetch('/api/groq', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ temperature: 0.1, max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
-        })
-        const data = await response.json()
+        const data = await llamarIA({ temperature: 0.1, max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
         const parsed = JSON.parse(data.choices[0].message.content)
         setFormCliente({
           nombre: parsed.nombre || '',
