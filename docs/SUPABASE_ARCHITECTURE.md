@@ -8,12 +8,13 @@ Estado verificado el 5 de septiembre de 2026 contra el proyecto de producción F
 - PostgreSQL: 17
 - PostgREST reflejado en los tipos: 14.5
 - Edge Functions desplegadas: ninguna
-- Funciones propias en `public`: `siguiente_numero`, `consultar_siguiente_numero` y `fijar_numeracion` (ver «Numeración de documentos»)
+- Funciones propias en `public`: `siguiente_numero`, `consultar_siguiente_numero` y `fijar_numeracion` (ver «Numeración de documentos»), y la función de trigger `proteger_documentos_cerrados` (ver «Documentos cerrados»)
 - Vistas propias en `public`: ninguna
 - Migraciones registradas:
   - `20260905092534_baseline_and_harden_facturavoice`
   - `20261007122600_numeracion_documentos`
   - `20261007130500_consultar_numeracion`
+  - `20261008081500_proteger_documentos_cerrados`
 
 El identificador del proyecto y las credenciales no se guardan en este documento. La aplicación obtiene la URL y las claves desde variables de entorno.
 
@@ -50,6 +51,12 @@ Restricciones en `documentos`:
 - `documentos_user_numero_key`: el número es único por usuario.
 
 La migración `20261007122600_numeracion_documentos` renumeró por orden de creación las series que tenían números duplicados. Era aceptable porque la cuenta afectada es de pruebas y no hay facturas emitidas; con datos reales no lo sería. Las columnas `negocios.contador_*` quedan como históricas: la migración trasladó su valor a `numeracion` y la aplicación ya no las usa.
+
+## Documentos cerrados
+
+Las facturas y los albaranes ya facturados no se pueden modificar. El trigger `documentos_proteger_cerrados` (`BEFORE UPDATE` sobre `documentos`) rechaza cualquier cambio en esas filas con el error `42501`, también si la petición llega directamente a la API. Las facturas emitidas se corrigen con una factura rectificativa. Los albaranes sin facturar sí pueden cambiar, incluido el paso de `facturado` a `true` al agruparlos en una factura.
+
+La edición de presupuestos y de albaranes sin facturar se guarda con el botón **GUARDAR** de `DocumentPage.jsx`, que actualiza solo `lineas`, `totales` y `notas`, y registra `editar_documento` en `auditoria`.
 
 ## Índices de acceso por usuario
 

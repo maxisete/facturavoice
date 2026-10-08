@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { ChevronLeft, Download, Plus, X, Zap } from 'lucide-react'
+import { ChevronLeft, Download, Plus, Save, X, Zap } from 'lucide-react'
 import { calcularTotales, formatearEuros, formatearFecha } from '../lib/document'
 import { useAppStore } from '../store/appStore'
 import { registrarAccion } from '../lib/auditoria'
@@ -30,6 +30,9 @@ export default function DocumentPage() {
   const [cargando, setCargando] = useState(!esNuevo && Boolean(docRaw?.id))
   const [errorCarga, setErrorCarga] = useState(null)
   const [generando, setGenerando] = useState(false)
+  const [hayCambios, setHayCambios] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [errorGuardar, setErrorGuardar] = useState(null)
   const { negocio, plantillaPDF } = useAppStore()
   const soloLectura = doc?.tipo === 'factura' || (doc?.tipo === 'albaran' && doc?.facturado)
 
@@ -82,6 +85,17 @@ export default function DocumentPage() {
     // navegación y no cambian mientras la pantalla está abierta.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Aviso del navegador al cerrar o recargar la pestaña con cambios sin guardar.
+  useEffect(() => {
+    if (!hayCambios) return
+    const avisar = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', avisar)
+    return () => window.removeEventListener('beforeunload', avisar)
+  }, [hayCambios])
 
   if (cargando) {
     return (
@@ -141,19 +155,52 @@ export default function DocumentPage() {
   const actualizarLinea = (i, campo, valor) => {
     const nuevasLineas = doc.lineas.map((l, idx) => idx === i ? { ...l, [campo]: valor } : l)
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
+    setHayCambios(true)
   }
 
   const añadirLinea = () => {
     const nuevasLineas = [...doc.lineas, { reference: null, description: '', quantity: 1, unit_price: 0, vat_rate: doc.tipo === 'albaran' ? 0 : 21 }]
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
+    setHayCambios(true)
   }
 
   const eliminarLinea = (i) => {
     const nuevasLineas = doc.lineas.filter((_, idx) => idx !== i)
     setDoc(prev => ({ ...prev, lineas: nuevasLineas, totales: calcularTotales(nuevasLineas) }))
+    setHayCambios(true)
+  }
+
+  // Guarda solo líneas, totales y notas. Nunca toca número, cliente ni tipo.
+  // La base de datos rechaza cualquier cambio en documentos cerrados.
+  const handleGuardar = async () => {
+    setGuardando(true)
+    setErrorGuardar(null)
+    const { data, error } = await supabase
+      .from('documentos')
+      .update({ lineas: doc.lineas, totales: doc.totales, notas: doc.notas || null })
+      .eq('id', doc.id)
+      .select('id')
+    if (error || !data || data.length === 0) {
+      console.error('Error guardando cambios:', error)
+      setErrorGuardar(error?.message || 'No se han podido guardar los cambios. Inténtalo de nuevo.')
+      setGuardando(false)
+      return
+    }
+    await registrarAccion('editar_documento', { tipo: doc.tipo, numero: doc.numero, cliente: doc.cliente?.nombre })
+    setHayCambios(false)
+    setGuardando(false)
+  }
+
+  const handleVolver = () => {
+    if (hayCambios && !window.confirm('Hay cambios sin guardar. ¿Quieres salir sin guardarlos?')) return
+    navigate(-1)
   }
 
   const handleConvertirAFactura = async () => {
+    if (hayCambios) {
+      alert('Guarda los cambios antes de convertir el presupuesto en factura.')
+      return
+    }
     let numero
     try {
       numero = await obtenerSiguienteNumero('factura')
@@ -173,13 +220,26 @@ export default function DocumentPage() {
       <header className="px-5 py-3 flex items-center gap-3"
         style={{ borderBottom: '1px solid rgba(0,245,255,0.15)', background: 'rgba(10,10,15,0.98)' }}
       >
-        <button onClick={() => navigate(-1)} className="text-neon-cyan">
+        <button onClick={handleVolver} className="text-neon-cyan">
           <ChevronLeft size={22} />
         </button>
         <div className="flex-1">
           <p className="text-xs font-mono text-gray-600">{tipoLabel.toUpperCase()}</p>
           <p className="font-orbitron font-bold text-white">{doc.numero}</p>
+          {hayCambios && (
+            <p className="text-xs font-mono text-neon-orange">● Cambios sin guardar</p>
+          )}
         </div>
+        {!soloLectura && (
+          <button
+            onClick={handleGuardar}
+            disabled={!hayCambios || guardando}
+            className="flex items-center gap-2 btn-neon text-neon-cyan px-4 py-2 rounded-xl font-orbitron text-xs tracking-widest disabled:opacity-40"
+          >
+            <Save size={14} />
+            {guardando ? 'GUARDANDO...' : 'GUARDAR'}
+          </button>
+        )}
         <button
           onClick={handleDescargarPDF}
           disabled={generando}
@@ -189,6 +249,10 @@ export default function DocumentPage() {
           {generando ? 'GENERANDO...' : 'PDF'}
         </button>
       </header>
+
+      {errorGuardar && (
+        <p className="px-5 pt-3 text-xs font-mono text-red-400 text-center">{errorGuardar}</p>
+      )}
 
       <div className="px-5 py-5 space-y-4 max-w-lg mx-auto">
 
@@ -302,7 +366,11 @@ export default function DocumentPage() {
           <p className="text-xs font-orbitron text-neon-cyan/50 tracking-widest mb-2">// NOTAS</p>
           <textarea
             value={doc.notas || ''}
-            onChange={e => !soloLectura && setDoc(prev => ({ ...prev, notas: e.target.value }))}
+            onChange={e => {
+              if (soloLectura) return
+              setDoc(prev => ({ ...prev, notas: e.target.value }))
+              setHayCambios(true)
+            }}
             placeholder="Condiciones, forma de pago…"
             readOnly={soloLectura}
             rows={3}
