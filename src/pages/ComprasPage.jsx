@@ -4,6 +4,7 @@ import { Upload, Camera, FileText, Zap } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { formatearEuros } from '../lib/document'
 import { llamarIA } from '../lib/groq'
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 export default function ComprasPage() {
   const [facturas, setFacturas] = useState([])
@@ -71,7 +72,7 @@ export default function ComprasPage() {
   const extraerTextoPDF = async (archivo) => {
     const arrayBuffer = await archivo.arrayBuffer()
     const pdfjsLib = await import('pdfjs-dist')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@6.0.227/build/pdf.worker.min.mjs`
+    pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
     let texto = ''
     for (let i = 1; i <= pdf.numPages; i++) {
